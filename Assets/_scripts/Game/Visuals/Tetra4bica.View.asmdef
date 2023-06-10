@@ -1,0 +1,20 @@
+{
+    "name": "Tetra4bica.View",
+    "rootNamespace": "",
+    "references": [
+        "GUID:771a78560fd0fd942ac6372ca55cca9a",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285",
+        "GUID:c0c0a8ca65a5e444a82e2441abb00d18",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:7f90844ee52cb254ab3bd54f2dd8d072"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

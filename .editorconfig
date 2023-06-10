@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# SWITCHCOMPLETENESS001: Switch over enum is incomplete.
+dotnet_diagnostic.SWITCHCOMPLETENESS001.severity = error

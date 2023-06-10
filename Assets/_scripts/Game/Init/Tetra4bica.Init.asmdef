@@ -1,0 +1,22 @@
+{
+    "name": "Tetra4bica.Init",
+    "rootNamespace": "",
+    "references": [
+        "GUID:0d8beb7f090555447a6cf5ce9e54dbb4",
+        "GUID:771a78560fd0fd942ac6372ca55cca9a",
+        "GUID:141a16ee466be6b408aca1332fc93bf6",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285",
+        "GUID:7f90844ee52cb254ab3bd54f2dd8d072"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "Zenject-usage.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

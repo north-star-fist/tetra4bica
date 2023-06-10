@@ -1,0 +1,18 @@
+{
+    "name": "Tetra4bica.UI",
+    "rootNamespace": "",
+    "references": [
+        "GUID:771a78560fd0fd942ac6372ca55cca9a",
+        "GUID:560b04d1a97f54a4e82edc0cbbb69285",
+        "GUID:7f90844ee52cb254ab3bd54f2dd8d072"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

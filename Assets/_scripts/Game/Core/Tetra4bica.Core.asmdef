@@ -1,0 +1,23 @@
+{
+    "name": "Tetra4bica.Core",
+    "rootNamespace": "",
+    "references": [
+        "UniRx",
+        "Zenject",
+        "Tetra4bica.Input",
+        "Tetra4bica.Util"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Zenject-usage.dll",
+        "System.Collections.Immutable.dll",
+        "Safonov.Unity.Util.General.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

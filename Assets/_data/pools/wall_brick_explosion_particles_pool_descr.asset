@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1608924599, guid: 80a1e26f6ab11e643a6be1b3ebd9628b, type: 3}
+  m_Name: wall_brick_explosion_particles_pool_descr
+  m_EditorClassIdentifier: 
+  capacity: 32
+  minSize: 32
+  maxSize: 64
+  prefab: {fileID: 9154544072947432108, guid: afbd2cff0302a9d428bc80e8430ea8df, type: 3}
+  returnToPoolWhen:
+    returnToPoolOnDisable: 0
+    returnToPoolOnParticleSystemStop: 1
+    returnToPoolByTimeout: 0
+    timeToLive: 0
+  activateOnBorrow: 0
+  deactivateOnRelease: 0
+  enableRendererOnBorrow: 0
+  disableRendererOnRelease: 0
