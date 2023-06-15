@@ -10,7 +10,7 @@ namespace Tetra4bica.Core {
     /// <summary> Mutable color cell table. </summary>
     public class ColorTable : IEquatable<ColorTable> {
 
-        CellColor[,] cellsTable;
+        CellColor?[,] cellsTable;
 
         private Vector2Int _size;
 
@@ -27,7 +27,7 @@ namespace Tetra4bica.Core {
 
         public ColorTable(Vector2Int size) {
             _size = size;
-            cellsTable = new CellColor[size.x, size.y];
+            cellsTable = new CellColor?[size.x, size.y];
         }
 
         public ColorTable(Vector2Int size, IEnumerable<Cell> cells) : this(size) {
@@ -39,7 +39,7 @@ namespace Tetra4bica.Core {
         public ColorTable(ushort width, ushort height) : this(v2i(width, height)) { }
 
         // Defines the x,y indexer, which will allow colored cells
-        public CellColor this[int x, int y] {
+        public CellColor? this[int x, int y] {
             get {
                 return getColor(v2i(x, y));
             }
@@ -49,7 +49,7 @@ namespace Tetra4bica.Core {
         }
 
         // Defines the Vector2 indexer, which will allow colored cells
-        public CellColor this[Vector2Int position] {
+        public CellColor? this[Vector2Int position] {
             get {
                 return getColor(position);
             }
@@ -58,7 +58,7 @@ namespace Tetra4bica.Core {
             }
         }
 
-        public void SetCell(Vector2Int pos, CellColor color) {
+        public void SetCell(Vector2Int pos, CellColor? color) {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
             cellsTable[shiftedPos.x, shiftedPos.y] = color;
@@ -67,7 +67,7 @@ namespace Tetra4bica.Core {
         public void RemoveCell(Vector2Int pos) {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
-            cellsTable[shiftedPos.x, shiftedPos.y] = CellColor.NONE;
+            cellsTable[shiftedPos.x, shiftedPos.y] = null;
         }
 
         /// <summary>
@@ -81,9 +81,9 @@ namespace Tetra4bica.Core {
             uint neighbourCellsCount = 0;
             foreach (Vector2Int dir in Direction.FOUR_DIRECTIONS) {
                 if (!IsOutOfMapBounds(includeCell + dir)) {
-                    CellColor col = this[includeCell + dir];
-                    if (col != CellColor.NONE) {
-                        neighbourCellsArray[neighbourCellsCount++] = new Cell(includeCell + dir, col);
+                    CellColor? col = this[includeCell + dir];
+                    if (col.HasValue) {
+                        neighbourCellsArray[neighbourCellsCount++] = new Cell(includeCell + dir, col.Value);
                     }
                 }
             }
@@ -105,8 +105,8 @@ namespace Tetra4bica.Core {
                 return 0;
             }
 
-            CellColor cellColor = getColor(includeCell);
-            if (cellColor == CellColor.NONE) {
+            CellColor? cellColor = getColor(includeCell);
+            if (!cellColor.HasValue) {
                 for (int i = 0; i < neighboursCount; i++) {
                     Cell neighbour = neighbourCellsArray[i];
                     var matchedCount = FindPattern(
@@ -117,7 +117,7 @@ namespace Tetra4bica.Core {
                     }
                 }
             } else {
-                return FindPattern(patternsBank[cellColor], cellColor, includeCell, matchedCellsBuffer);
+                return FindPattern(patternsBank[cellColor.Value], cellColor.Value, includeCell, matchedCellsBuffer);
             }
             return 0;
         }
@@ -173,7 +173,7 @@ namespace Tetra4bica.Core {
             return matched;
         }
 
-        public void ScrollLeft(IEnumerable<CellColor> newWallCells) {
+        public void ScrollLeft(IEnumerable<CellColor?> newWallCells) {
             // Shift cells
             scrollMapLeft();
             // Add new wall
@@ -183,7 +183,7 @@ namespace Tetra4bica.Core {
             void spawnNewWall() {
                 int lastColumnX = size.x - 1;
                 int y = 0;
-                foreach (CellColor cellColor in newWallCells) {
+                foreach (CellColor? cellColor in newWallCells) {
                     SetCell(v2i(lastColumnX, y++), cellColor);
                 }
             }
@@ -247,24 +247,26 @@ namespace Tetra4bica.Core {
             }
         }
 
-        private CellColor getColor(Vector2Int cell) {
+        private CellColor? getColor(Vector2Int cell) {
             Vector2Int shiftedPosition = shiftPosition(cell);
             return cellsTable[shiftedPosition.x, shiftedPosition.y];
         }
 
-        private char colorToCharacter(CellColor cellColor) {
-            return cellColor switch {
-                CellColor.NONE => ' ',
-                CellColor.Magenta => 'M',
-                CellColor.Blue => 'B',
-                CellColor.PaleBlue => 'b',
-                CellColor.Red => 'R',
-                CellColor.Orange => 'O',
-                CellColor.Green => 'G',
-                CellColor.Yellow => 'Y',
-                _ => throw new ArgumentException($"Unknown cell color: {nameof(cellColor)}")
-            };
-            ;
+        private char colorToCharacter(CellColor? cellColor) {
+            if (cellColor.HasValue) {
+                return cellColor.Value switch {
+                    CellColor.Magenta => 'M',
+                    CellColor.Blue => 'B',
+                    CellColor.PaleBlue => 'b',
+                    CellColor.Red => 'R',
+                    CellColor.Orange => 'O',
+                    CellColor.Green => 'G',
+                    CellColor.Yellow => 'Y',
+                    _ => throw new ArgumentException($"Unknown cell color: {nameof(cellColor)}")
+                };
+            } else {
+                return ' ';
+            }
         }
 
         private Vector2Int shiftPosition(Vector2Int position) {

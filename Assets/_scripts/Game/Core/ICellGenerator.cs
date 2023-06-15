@@ -6,7 +6,7 @@ namespace Tetra4bica.Core {
     public interface ICellGenerator {
 
         /// <summary> Generates new cells and fills passed array with them. </summary>
-        void GenerateCells(CellColor[] arrayToFill) {
+        void GenerateCells(CellColor?[] arrayToFill) {
             // Default implementation
             // TODO Extract it into strategy interface and store as Unity asset
             bool atLeastOneEmpty = false;
@@ -14,13 +14,13 @@ namespace Tetra4bica.Core {
                 if (Random.value < 0.5f) {
                     arrayToFill[i] = randomCell();
                 } else {
-                    arrayToFill[i] = CellColor.NONE;
+                    arrayToFill[i] = null;
                     atLeastOneEmpty = true;
                 }
             }
             if (!atLeastOneEmpty) {
                 int cavityInd = Random.Range(0, arrayToFill.Length);
-                arrayToFill[cavityInd] = CellColor.NONE;
+                arrayToFill[cavityInd] = null;
             }
         }
 

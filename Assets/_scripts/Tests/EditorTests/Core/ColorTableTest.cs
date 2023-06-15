@@ -38,7 +38,7 @@ public class ColorTableTest {
         table1[2, 0] = CellColor.Green;
         Assert.AreEqual(table1[v2i(1, 1)], CellColor.Blue);
         Assert.AreEqual(table1[v2i(2, 0)], CellColor.Green);
-        Assert.AreEqual(table1[v2i(0, 0)], CellColor.NONE);
+        Assert.IsFalse(table1[v2i(0, 0)].HasValue);
     }
 
     [Test]
@@ -47,18 +47,18 @@ public class ColorTableTest {
         table1[1, 0] = CellColor.Blue;
         table1.SetCell(v2i(1, 1), CellColor.Blue);
         table1.SetCell(v2i(1, 2), CellColor.Blue);
-        table1[1, 2] = CellColor.NONE;
+        table1[1, 2] = null;
         Assert.AreEqual(table1[v2i(1, 1)], CellColor.Blue);
         Assert.AreEqual(table1[v2i(1, 0)], CellColor.Blue);
-        Assert.AreEqual(table1[v2i(1, 2)], CellColor.NONE);
-        table1[1, 0] = CellColor.NONE;
+        Assert.IsFalse(table1[v2i(1, 2)].HasValue);
+        table1[1, 0] = null;
         Assert.AreEqual(table1[v2i(1, 1)], CellColor.Blue);
-        Assert.AreEqual(table1[v2i(1, 0)], CellColor.NONE);
-        Assert.AreEqual(table1[v2i(1, 2)], CellColor.NONE);
-        table1[1, 1] = CellColor.NONE;
-        Assert.AreEqual(table1[v2i(1, 1)], CellColor.NONE);
-        Assert.AreEqual(table1[v2i(1, 0)], CellColor.NONE);
-        Assert.AreEqual(table1[v2i(1, 2)], CellColor.NONE);
+        Assert.IsFalse(table1[v2i(1, 0)].HasValue);
+        Assert.IsFalse(table1[v2i(1, 2)].HasValue);
+        table1[1, 1] = null;
+        Assert.IsFalse(table1[v2i(1, 1)].HasValue);
+        Assert.IsFalse(table1[v2i(1, 0)].HasValue);
+        Assert.IsFalse(table1[v2i(1, 2)].HasValue);
     }
 
     [Test]
@@ -230,12 +230,12 @@ public class ColorTableTest {
         ColorTable table1 = new ColorTable(2, 2);
         table1.SetCell(v2i(0, 0), CellColor.Red);
         table1.SetCell(v2i(1, 1), CellColor.Orange);
-        table1.ScrollLeft(new CellColor[] { CellColor.NONE, CellColor.NONE });
+        table1.ScrollLeft(new CellColor?[] { null, null });
 
-        Assert.AreEqual(CellColor.NONE, table1[0, 0]);
+        Assert.IsFalse(table1[0, 0].HasValue);
         Assert.AreEqual(CellColor.Orange, table1[0, 1]);
-        Assert.AreEqual(CellColor.NONE, table1[1, 0]);
-        Assert.AreEqual(CellColor.NONE, table1[1, 1]);
+        Assert.IsFalse(table1[1, 0].HasValue);
+        Assert.IsFalse(table1[1, 1].HasValue);
     }
 
 
@@ -249,16 +249,16 @@ public class ColorTableTest {
         table1.SetCell(v2i(1, 1) * 4, CellColor.PaleBlue);
         table1.SetCell(v2i(1, 1) * 5, CellColor.Blue);
         table1.SetCell(v2i(1, 1) * 6, CellColor.Magenta);
-        table1.ScrollLeft(new CellColor[]{
-            CellColor.NONE,
-            CellColor.NONE,
-            CellColor.NONE,
-            CellColor.NONE,
-            CellColor.NONE,
-            CellColor.NONE,
-            CellColor.NONE});
+        table1.ScrollLeft(new CellColor?[]{
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null});
 
-        Assert.AreEqual(CellColor.NONE, table1[0, 0]);
+        Assert.IsFalse(table1[0, 0].HasValue);
         Assert.AreEqual(CellColor.Orange, table1[0, 1]);
         Assert.AreEqual(CellColor.Yellow, table1[1, 2]);
         Assert.AreEqual(CellColor.Green, table1[2, 3]);
@@ -266,13 +266,13 @@ public class ColorTableTest {
         Assert.AreEqual(CellColor.Blue, table1[4, 5]);
         Assert.AreEqual(CellColor.Magenta, table1[5, 6]);
 
-        Assert.AreEqual(CellColor.NONE, table1[6, 0]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 1]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 2]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 3]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 4]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 5]);
-        Assert.AreEqual(CellColor.NONE, table1[6, 6]);
+        Assert.IsFalse(table1[6, 0].HasValue);
+        Assert.IsFalse(table1[6, 1].HasValue);
+        Assert.IsFalse(table1[6, 2].HasValue);
+        Assert.IsFalse(table1[6, 3].HasValue);
+        Assert.IsFalse(table1[6, 4].HasValue);
+        Assert.IsFalse(table1[6, 5].HasValue);
+        Assert.IsFalse(table1[6, 6].HasValue);
     }
 
     [Test]
@@ -285,7 +285,7 @@ public class ColorTableTest {
         table1.SetCell(v2i(4, 4), CellColor.PaleBlue);
         table1.SetCell(v2i(5, 5), CellColor.Blue);
         table1.SetCell(v2i(6, 6), CellColor.Magenta);
-        table1.ScrollLeft(new CellColor[]{
+        table1.ScrollLeft(new CellColor?[]{
             CellColor.Red,
             CellColor.Green,
             CellColor.Blue,
@@ -294,7 +294,7 @@ public class ColorTableTest {
             CellColor.Yellow,
             CellColor.Orange});
 
-        Assert.AreEqual(CellColor.NONE, table1[0, 0]);
+        Assert.IsFalse(table1[0, 0].HasValue);
         Assert.AreEqual(CellColor.Orange, table1[0, 1]);
         Assert.AreEqual(CellColor.Yellow, table1[1, 2]);
         Assert.AreEqual(CellColor.Green, table1[2, 3]);

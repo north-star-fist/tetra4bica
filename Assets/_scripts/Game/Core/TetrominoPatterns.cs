@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel;
 using Tetra4bica.Util;
 
@@ -106,7 +105,6 @@ namespace Tetra4bica.Core {
         }
 
         public CellFragment[] GetPatterns(CellColor color) => color switch {
-            CellColor.NONE => Array.Empty<CellFragment>(),
             CellColor.Yellow => SQUARE_PATTERNS,
             CellColor.Red => Z_PATTERNS,
             CellColor.Green => S_PATTERNS,

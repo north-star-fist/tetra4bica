@@ -11,6 +11,7 @@ namespace Tetra4bica.Core {
         public readonly Vector2Int Position;
         public readonly CellColor Color;
 
+
         public Cell(Vector2Int position, CellColor color) {
             this.Position = position;
             this.Color = color;
@@ -39,14 +40,13 @@ namespace Tetra4bica.Core {
     }
 
     public enum CellColor {
-        NONE = 0,
+        Orange = 0,     // L
         Red = 1,        // S
         Green = 2,      // Z
         Blue = 3,       // Back L
         PaleBlue = 4,   // I
         Magenta = 5,     // T
         Yellow = 6,     // []
-        Orange = 7,     // L
     }
 
     public static class Cells {
@@ -59,7 +59,6 @@ namespace Tetra4bica.Core {
         public static Color ToUnityColor(CellColor cell) {
             // Color mapper
             return cell switch {
-                CellColor.NONE => Color.black,
                 CellColor.Red => Color.red,
                 CellColor.Green => Color.green,
                 CellColor.Blue => Color.blue,

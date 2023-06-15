@@ -18,7 +18,7 @@ namespace Tetra4bica.Core {
         public IObservable<Cell> NewCellStream { get; }
 
         /// <summary> Stream of the level color table scrolls left. Has new cells wall as payload. </summary>
-        public IObservable<IEnumerable<CellColor>> TableScrollStream { get; }
+        public IObservable<IEnumerable<CellColor?>> TableScrollStream { get; }
 
         /// <summary> Player's tetramino stream. </summary>
         public IObservable<PlayerTetromino> PlayerTetrominoStream { get; }

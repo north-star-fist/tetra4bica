@@ -25,7 +25,7 @@ namespace Tetra4bica.Tests {
 
         Subject<Vector2Int> gameStartedStream;
         Subject<Cell> newCellStream;
-        Subject<CellColor[]> mapScrollStream;
+        Subject<CellColor?[]> mapScrollStream;
         Subject<Cell> eliminatedBricksStream;
 
         GameObject cellsParent;
@@ -44,7 +44,7 @@ namespace Tetra4bica.Tests {
             // GameEvents
             gameStartedStream = new Subject<Vector2Int>();
             newCellStream = new Subject<Cell>();
-            mapScrollStream = new Subject<CellColor[]>();
+            mapScrollStream = new Subject<CellColor?[]>();
             eliminatedBricksStream = new Subject<Cell>();
             gEventsMock = new Mock<IGameEvents>();
             gEventsMock.Setup(ev => ev.NewCellStream).Returns(newCellStream);
@@ -117,8 +117,10 @@ namespace Tetra4bica.Tests {
             yield return null;
 
             // Verification
-            testColorTable(new[,] { {(false, CellColor.NONE), (false, CellColor.NONE) },
-                                {(false, CellColor.NONE), (false, CellColor.NONE) } });
+            testColorTable(new CellColor?[,] {
+                { null, null },
+                { null, null }
+            });
         }
 
         [UnityTest]
@@ -130,17 +132,17 @@ namespace Tetra4bica.Tests {
             gameStartedStream.OnNext(new Vector2Int(2, 2));
 
             // Scroll 1
-            mapScrollStream.OnNext(new[] { CellColor.PaleBlue, CellColor.Magenta });
-            testColorTable(new[,] { {(false, CellColor.NONE), (false, CellColor.NONE) },
-                                { (true, CellColor.PaleBlue), (true, CellColor.Magenta) } });
+            mapScrollStream.OnNext(new CellColor?[] { CellColor.PaleBlue, CellColor.Magenta });
+            testColorTable(new CellColor?[,] { {null, null},
+                                { CellColor.PaleBlue, CellColor.Magenta } });
             // Scroll 2
-            mapScrollStream.OnNext(new[] { CellColor.Red, CellColor.NONE });
-            testColorTable(new[,] { {(true, CellColor.PaleBlue), (true, CellColor.Magenta) },
-                                { (true, CellColor.Red), (false, CellColor.NONE) } });
+            mapScrollStream.OnNext(new CellColor?[] { CellColor.Red, null });
+            testColorTable(new CellColor?[,] { {CellColor.PaleBlue, CellColor.Magenta },
+                                { CellColor.Red, null } });
             // Scroll 3
-            mapScrollStream.OnNext(new[] { CellColor.Green, CellColor.NONE });
-            testColorTable(new[,] { {(true, CellColor.Red), (false, CellColor.NONE) },
-                                { (true, CellColor.Green), (false, CellColor.NONE) } });
+            mapScrollStream.OnNext(new CellColor?[] { CellColor.Green, null });
+            testColorTable(new CellColor?[,] { {CellColor.Red, null },
+                                { CellColor.Green, null } });
 
             yield return null;
         }
@@ -153,12 +155,12 @@ namespace Tetra4bica.Tests {
             // start the game
             //gameStartedStream.OnNext(new Vector2Int(2, 2));
             // Scroll
-            mapScrollStream.OnNext(new[] { CellColor.PaleBlue, CellColor.Magenta });
+            mapScrollStream.OnNext(new CellColor?[] { CellColor.PaleBlue, CellColor.Magenta });
 
             //yield return null;
 
             // Verification
-            testColorTable(new (bool, CellColor)[0, 0]);
+            testColorTable(new CellColor?[0, 0]);
 
             LogAssert.Expect(LogType.Error, "Trying to scroll the table before the game started!");
             yield return null;
@@ -175,20 +177,19 @@ namespace Tetra4bica.Tests {
             // Patch 1
             newCellStream.OnNext(new Cell(v2i(1, 0), CellColor.PaleBlue));
             newCellStream.OnNext(new Cell(v2i(0, 1), CellColor.Magenta));
-            testColorTable(new[,] { {(false, CellColor.NONE), (true, CellColor.Magenta) },
-                                { (true, CellColor.PaleBlue), (false, CellColor.NONE) } });
+            testColorTable(new CellColor?[,] { {null, CellColor.Magenta },
+                                { CellColor.PaleBlue, null } });
 
             // Patch 2
             newCellStream.OnNext(new Cell(v2i(0, 0), CellColor.Red));
             newCellStream.OnNext(new Cell(v2i(1, 1), CellColor.Blue));
-            testColorTable(new[,] { {(true, CellColor.Red), (true, CellColor.Magenta) },
-                                { (true, CellColor.PaleBlue), (true, CellColor.Blue) } });
+            testColorTable(new CellColor?[,] { { CellColor.Red, CellColor.Magenta },
+                                {CellColor.PaleBlue, CellColor.Blue} });
 
             // Patch 3
-            newCellStream.OnNext(new Cell(v2i(0, 1), CellColor.NONE));
             newCellStream.OnNext(new Cell(v2i(1, 1), CellColor.Green));
-            testColorTable(new[,] { {(true, CellColor.Red), (false, CellColor.NONE) },
-                                { (true, CellColor.PaleBlue), (true, CellColor.Green) } });
+            testColorTable(new CellColor?[,] { {CellColor.Red, CellColor.Magenta},
+                                { CellColor.PaleBlue, CellColor.Green } });
 
             yield return null;
         }
@@ -203,8 +204,8 @@ namespace Tetra4bica.Tests {
 
             // Explosion 1
             eliminatedBricksStream.OnNext(new Cell(v2i(0, 1), CellColor.Magenta));
-            testColorTable(new[,] { {(false, CellColor.NONE), (false, CellColor.NONE) },
-                                { (false, CellColor.NONE), (false, CellColor.NONE) } });
+            testColorTable(new CellColor?[,] { {null, null },
+                                { null, null } });
             Assert.AreEqual(true, explosions.First().GetComponent<ParticleSystem>().isPlaying);
 
             // Patch 1
@@ -212,8 +213,8 @@ namespace Tetra4bica.Tests {
             newCellStream.OnNext(new Cell(v2i(1, 1), CellColor.Blue));
             // Explosion 2
             eliminatedBricksStream.OnNext(new Cell(v2i(1, 1), CellColor.Magenta));
-            testColorTable(new[,] { {(true, CellColor.Red), (false, CellColor.NONE) },
-                                { (false, CellColor.NONE), (false, CellColor.NONE) } });
+            testColorTable(new CellColor?[,] { {CellColor.Red, null },
+                                { null, null } });
             Assert.AreEqual(true, explosions.Last().GetComponent<ParticleSystem>().isPlaying);
 
             Assert.AreEqual(2, explosions.Count());
@@ -221,7 +222,7 @@ namespace Tetra4bica.Tests {
             yield return null;
         }
 
-        private void testColorTable((bool active, CellColor color)[,] reqTable) {
+        private void testColorTable(CellColor?[,] reqTable) {
             // Verification
             int reqWidth = reqTable.GetLength(0);
             int reqHeight = reqTable.GetLength(1);
@@ -235,8 +236,8 @@ namespace Tetra4bica.Tests {
                 for (int y = 0; y < reqHeight; y++) {
                     verifyCell(
                         callTable[x, y], parentPos, v2i(x, y), cellSize,
-                        reqTable[x, y].active, cellsParent.transform,
-                        Cells.ToUnityColor(reqTable[x, y].color)
+                        reqTable[x, y].HasValue, cellsParent.transform,
+                        Cells.ToUnityColor(reqTable[x, y].GetValueOrDefault())
                     );
                 }
             }
@@ -254,8 +255,8 @@ namespace Tetra4bica.Tests {
             Assert.AreSame(parent, cell.transform.parent);
             SpriteRenderer renderer = cell.GetComponent<SpriteRenderer>();
             Assert.IsNotNull(renderer);
+            Assert.AreEqual(active, renderer.enabled);
             if (active) {
-                Assert.AreEqual(active, renderer.enabled);
                 Assert.AreEqual(reqColor, renderer.color);
             }
         }

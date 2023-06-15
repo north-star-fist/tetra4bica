@@ -31,7 +31,7 @@ public class ScrollColumnLogger : MonoBehaviour {
         gameEvents.TableScrollStream.Subscribe(wall => logWall(wall));
     }
 
-    void logWall(IEnumerable<CellColor> wall) {
+    void logWall(IEnumerable<CellColor?> wall) {
         if (logFileStream != null) {
             formatter.Serialize(logFileStream, wall);
         }

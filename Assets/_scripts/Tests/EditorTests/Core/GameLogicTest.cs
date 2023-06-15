@@ -13,7 +13,7 @@ using static Tetra4bica.Input.PlayerInput;
 
 public class GameLogicTest {
 
-    readonly CellColor[] EMPTY_WALL_8 = Enumerable.Repeat(CellColor.NONE, 8).ToArray();
+    readonly CellColor?[] EMPTY_WALL_8 = Enumerable.Repeat((CellColor?)null, 8).ToArray();
 
     [Test]
     public void TestProjectileFlight() {
@@ -60,12 +60,11 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        var wall = new CellColor[] {CellColor.NONE, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
-            CellColor.NONE, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
+        var wall = new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
+            null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
         };
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -98,17 +97,16 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.PaleBlue, CellColor.NONE, CellColor.NONE,
-            CellColor.NONE, CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue
+        CellColor?[][] walls = new CellColor?[][] {
+         new CellColor?[] {null, CellColor.PaleBlue, null, null,
+            null, CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue
         },
-         new CellColor[] {CellColor.NONE, CellColor.PaleBlue, CellColor.NONE, CellColor.PaleBlue,
+         new CellColor?[] { null, CellColor.PaleBlue, null, CellColor.PaleBlue,
             CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
         } };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -144,12 +142,11 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        var wall = new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE,
-            CellColor.Red, CellColor.Red, CellColor.Red, CellColor.NONE
+        var wall = new CellColor?[] {null, null, null, null,
+            CellColor.Red, CellColor.Red, CellColor.Red, null
         };
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -183,12 +180,10 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        var wall = new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE,
-            CellColor.Red, CellColor.Red, CellColor.Red, CellColor.Red
-        };
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
+        var wall = new CellColor?[] {null, null, null, null,
+            CellColor.Red, CellColor.Red, CellColor.Red, CellColor.Red };
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -222,20 +217,19 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Green, CellColor.NONE,
-                CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {null, null, CellColor.Green, null,
+                null, null, null, null
             },
             EMPTY_WALL_8,
             EMPTY_WALL_8,
-            new CellColor[] {CellColor.NONE, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
-                CellColor.NONE, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
+            new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
+                null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
             }
         };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -279,17 +273,16 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.PaleBlue, CellColor.NONE,
-            CellColor.PaleBlue, CellColor.PaleBlue, CellColor.NONE, CellColor.NONE
+        CellColor?[][] walls = new CellColor?[][] {
+         new CellColor?[] {null, null, CellColor.PaleBlue, null,
+            CellColor.PaleBlue, CellColor.PaleBlue, null, null
         },
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.Green,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
+         new CellColor?[] {null, null, null, CellColor.Green,
+            null, null, null, null
         } };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -320,17 +313,16 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Green, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
+        CellColor?[][] walls = new CellColor?[][] {
+         new CellColor?[] {null, null, CellColor.Green, null,
+            null, null, null, null
         },
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.PaleBlue, CellColor.NONE,
-            CellColor.PaleBlue, CellColor.PaleBlue, CellColor.NONE, CellColor.NONE
+         new CellColor?[] {null, null, CellColor.PaleBlue, null,
+            CellColor.PaleBlue, CellColor.PaleBlue, null, null
         } };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -363,14 +355,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Green, CellColor.Green,
-            CellColor.Green, CellColor.NONE, CellColor.NONE, CellColor.NONE
+        CellColor?[][] walls = new CellColor?[][] {
+         new CellColor?[] {null, null, CellColor.Green, CellColor.Green,
+            CellColor.Green, null, null, null
         } };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -409,16 +400,14 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Red, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        }, new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Red, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
+        CellColor?[][] walls = new CellColor?[][] {
+         new CellColor?[] {null, null, CellColor.Red, null,
+            null, null, null, null
+        }, new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null
         }, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -451,16 +440,14 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Red, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        }, new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Red, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        }, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
+            new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
+            EMPTY_WALL_8,
+            EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -493,14 +480,12 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Magenta, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        }, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -542,14 +527,12 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Magenta, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        }, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -594,18 +577,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE,
-            CellColor.Orange, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        },
-         new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Orange, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        },
+        CellColor?[][] walls = new CellColor?[][] {
+             new CellColor?[] {null, null, null, null, CellColor.Orange, null, null, null },
+             new CellColor?[] {null, null, CellColor.Orange, null, null, null, null, null },
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -645,18 +623,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[] {CellColor.NONE, CellColor.NONE, CellColor.Blue, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        },
-         new CellColor[] {CellColor.NONE, CellColor.Blue, CellColor.Blue, CellColor.NONE,
-            CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE
-        },
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {null, null, CellColor.Blue, null, null, null, null, null },
+            new CellColor?[] {null, CellColor.Blue, CellColor.Blue, null, null, null, null, null },
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -689,14 +662,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[] {CellColor.Red, CellColor.Orange, CellColor.NONE, CellColor.Yellow,
-            CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta
-        }, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
+                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -732,14 +704,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[] {CellColor.Red, CellColor.Orange, CellColor.NONE, CellColor.Yellow,
-            CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta
-        }, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
+                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -779,14 +750,13 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[] {CellColor.Red, CellColor.Orange, CellColor.NONE, CellColor.Yellow,
-            CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta
-        }, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
+                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -819,13 +789,12 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
+        CellColor?[][] walls = new CellColor?[][] {
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -862,13 +831,12 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
+        CellColor?[][] walls = new CellColor?[][] {
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
@@ -904,15 +872,14 @@ public class GameLogicTest {
         );
         TestEventProvider eventProvider = new TestEventProvider();
         Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
-        CellColor[] cellBuffer = new CellColor[8];
-        CellColor[][] walls = new CellColor[][] {
-            new CellColor[]{CellColor.NONE, CellColor.NONE, CellColor.Red, CellColor.NONE,
-                CellColor.NONE, CellColor.NONE, CellColor.NONE, CellColor.NONE},
+        CellColor?[][] walls = new CellColor?[][] {
+            new CellColor?[]{null, null, CellColor.Red, null,
+                null, null, null, null},
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
-        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor[]>()))
-            .Callback<CellColor[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+        cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
         var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 

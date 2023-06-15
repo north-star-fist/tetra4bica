@@ -45,7 +45,7 @@ namespace Tetra4bica.Graphics {
         void Setup(
             IObservable<Vector2Int> gameStartedStream,
             IObservable<Cell> newCellStream,
-            IObservable<IEnumerable<CellColor>> mapScrollStream,
+            IObservable<IEnumerable<CellColor?>> mapScrollStream,
             IObservable<Cell> eliminatedBricksStream
         ) {
             mapScrollStream.Subscribe(scrollMap);
@@ -55,7 +55,7 @@ namespace Tetra4bica.Graphics {
             );
             gameStartedStream.Subscribe(mapSize => {
                 if (this.mapSize == mapSize) {
-                    paintAll(CellColor.NONE);
+                    eraseAll();
                     return;
                 }
                 this.mapSize = mapSize;
@@ -63,15 +63,15 @@ namespace Tetra4bica.Graphics {
                     mapSize.x, mapSize.y,
                     visualSettings.BottomLeftPoint
                 );
-                paintAll(CellColor.NONE);
+                eraseAll();
                 started = true;
             });
         }
 
-        private void paintAll(CellColor color) {
+        private void eraseAll() {
             for (int x = 0; x < mapSize.x; x++) {
                 for (int y = 0; y < mapSize.y; y++) {
-                    updateBrickVisuals(new Cell(v2i(x, y), color));
+                    eraseCell(v2i(x, y));
                 }
             }
         }
@@ -107,7 +107,7 @@ namespace Tetra4bica.Graphics {
             }
         }
 
-        private void scrollMap(IEnumerable<CellColor> newWall) {
+        private void scrollMap(IEnumerable<CellColor?> newWall) {
             if (!started) {
                 Debug.LogError("Trying to scroll the table before the game started!");
                 return;
@@ -132,8 +132,12 @@ namespace Tetra4bica.Graphics {
                         Debug.LogError("Received more cells in wall than the map height!");
                         break;
                     }
-                    var mostRightCell = brickMap[v2i(mapSize.x - 1, y)];
-                    updateBrickVisuals(new Cell(v2i(mapSize.x - 1, y), cell));
+                    Vector2Int xy = v2i(mapSize.x - 1, y);
+                    if (cell.HasValue) {
+                        updateBrickVisuals(new Cell(xy, cell.Value));
+                    } else {
+                        eraseCell(xy);
+                    }
                     y++;
                 }
             }
@@ -141,12 +145,7 @@ namespace Tetra4bica.Graphics {
 
         private void updateBrickVisuals(Cell cell) {
             SpriteRenderer spriteRenderer = brickMap[cell.Position];
-            if (cell.Color != CellColor.NONE) {
-                paintCell(spriteRenderer, Cells.ToUnityColor(cell.Color));
-            } else {
-                spriteRenderer.enabled = false;
-                //spriteRenderer.gameObject.SetActive(false);
-            }
+            paintCell(spriteRenderer, Cells.ToUnityColor(cell.Color));
         }
 
         private static void paintCell(SpriteRenderer spriteRenderer, Color color) {
@@ -157,7 +156,7 @@ namespace Tetra4bica.Graphics {
 
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor eliminatedCellColor) {
 
-            updateBrickVisuals(new Cell(xy, CellColor.NONE));
+            eraseCell(xy);
             renderWallBrickExplosion(xy);
 
             void renderWallBrickExplosion(Vector2Int xy) {
@@ -170,6 +169,12 @@ namespace Tetra4bica.Graphics {
                     ps.Play();
                 }
             }
+        }
+
+        private void eraseCell(Vector2Int xy) {
+            SpriteRenderer spriteRenderer = brickMap[xy];
+            spriteRenderer.enabled = false;
+            //spriteRenderer.gameObject.SetActive(false);
         }
     }
 }
