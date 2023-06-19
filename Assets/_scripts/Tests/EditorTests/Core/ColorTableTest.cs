@@ -249,14 +249,7 @@ public class ColorTableTest {
         table1.SetCell(v2i(1, 1) * 4, CellColor.PaleBlue);
         table1.SetCell(v2i(1, 1) * 5, CellColor.Blue);
         table1.SetCell(v2i(1, 1) * 6, CellColor.Magenta);
-        table1.ScrollLeft(new CellColor?[]{
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null});
+        table1.ScrollLeft(new CellColor?[] { null, null, null, null, null, null, null });
 
         Assert.IsFalse(table1[0, 0].HasValue);
         Assert.AreEqual(CellColor.Orange, table1[0, 1]);

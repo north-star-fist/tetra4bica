@@ -44,21 +44,6 @@ public class CellFragmentTest {
         Assert.AreEqual(fragment1, fragment2);
     }
 
-    // TODO: Uncomment
-    /*
-    [Test]
-    public void TestCellFragmentIsCached() {
-        bool[,] fragment1Cells = new bool[,] { { true, false }, { false, false } };
-        bool[,] fragment2Cells = new bool[,] { { false, false }, { false, true } };
-
-        var fragment1 = CellFragment.Fragment(fragment1Cells, out var _);
-        CellFragment fragment2;
-        Assert.That(
-            () => { fragment2 = CellFragment.Fragment(fragment2Cells, out var _); },
-            !Is.AllocatingGCMemory()
-        );
-    }
-    */
 
     [Test]
     public void TestCellFragmentEnumeratorNoAllocations() {

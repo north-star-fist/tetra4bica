@@ -152,12 +152,8 @@ namespace Tetra4bica.Tests {
 
             CommonInstall();
 
-            // start the game
-            //gameStartedStream.OnNext(new Vector2Int(2, 2));
             // Scroll
             mapScrollStream.OnNext(new CellColor?[] { CellColor.PaleBlue, CellColor.Magenta });
-
-            //yield return null;
 
             // Verification
             testColorTable(new CellColor?[0, 0]);
@@ -251,7 +247,6 @@ namespace Tetra4bica.Tests {
             Assert.AreEqual(reqPos.y, pos.y, double.Epsilon);
 
             Assert.AreEqual(true, cell.activeInHierarchy);
-            //Assert.AreEqual(active, cell.activeInHierarchy);
             Assert.AreSame(parent, cell.transform.parent);
             SpriteRenderer renderer = cell.GetComponent<SpriteRenderer>();
             Assert.IsNotNull(renderer);

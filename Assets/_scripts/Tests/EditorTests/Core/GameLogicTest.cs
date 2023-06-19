@@ -15,22 +15,51 @@ public class GameLogicTest {
 
     readonly CellColor?[] EMPTY_WALL_8 = Enumerable.Repeat((CellColor?)null, 8).ToArray();
 
-    [Test]
-    public void TestProjectileFlight() {
+    GameLogic gameLogic;
+    TestEventProvider eventProvider;
+    Mock<ICellGenerator> cellGeneratorMock;
+    StreamItemCollector<GamePhase> gamePhaseCollector;
+    StreamItemCollector<Vector2> projectilesCollector;
+    StreamItemCollector<Cell> eliminatedCellsCollecter;
+    StreamItemCollector<PlayerTetromino> plTetromonoCollector;
+    StreamItemCollector<Unit> gameOverCollector;
+    StreamItemCollector<Cell> newCellsCollector;
+
+    // Parametrized setup that is invoked 'manually'
+    public void setUp(int w, int h, Vector2Int playerLocation, float scrollTime, float projectileSpeed) {
         GameSettings gameSettings = new GameSettings(
-            8, 8, 10,
-            v2i(1, 3), CellColor.Yellow,
-            CellColor.Green, 1,
+            w, h, scrollTime,
+            playerLocation, CellColor.Yellow,
+            CellColor.Green, projectileSpeed,
             1,
             true, true
         );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        eventProvider = new TestEventProvider();
+        cellGeneratorMock = new Mock<ICellGenerator>();
         ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
+        gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
-        StreamItemCollector<Vector2> projectilesMonitor = new();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesMonitor);
+        gamePhaseCollector = new StreamItemCollector<GamePhase>();
+        gameLogic.GamePhaseStream.Subscribe(gamePhaseCollector);
+
+        projectilesCollector = new();
+        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
+
+        eliminatedCellsCollecter = new();
+        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
+
+        plTetromonoCollector = new StreamItemCollector<PlayerTetromino>();
+        gameLogic.PlayerTetrominoStream.Subscribe(plTetromonoCollector);
+        gameOverCollector = new StreamItemCollector<Unit>();
+        gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
+            .Subscribe(gameOverCollector);
+        newCellsCollector = new StreamItemCollector<Cell>();
+        gameLogic.NewCellStream.Subscribe(newCellsCollector);
+    }
+
+    [Test]
+    public void TestProjectileFlightTrack() {
+        setUp(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 10, projectileSpeed: 1);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -45,33 +74,19 @@ public class GameLogicTest {
 
         Assert.AreEqual(
             new Vector2Int[] { v2i(4, 4), v2i(5, 4), v2i(6, 4), v2i(7, 4), v2i(8, 4) }.ToArray(),
-            projectilesMonitor.items.Select(v => v.toVector2Int()).ToArray()
+            projectilesCollector.items.Select(v => v.toVector2Int()).ToArray()
         );
     }
 
     [Test]
     public void TestOneShotStickTetrominoElimination() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(1, 3), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 5, projectileSpeed: 1);
+
         var wall = new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
             null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
         };
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Vector2> projectilesMonitor = new();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesMonitor);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -88,32 +103,20 @@ public class GameLogicTest {
 
     [Test]
     public void TestTwoShotsTTetrominoElimination() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(1, 3), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 5, projectileSpeed: 1);
+
         CellColor?[][] walls = new CellColor?[][] {
-         new CellColor?[] {null, CellColor.PaleBlue, null, null,
-            null, CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue
-        },
-         new CellColor?[] { null, CellColor.PaleBlue, null, CellColor.PaleBlue,
-            CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
-        } };
+            new CellColor?[] {null, CellColor.PaleBlue, null, null,
+                null, CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue
+            },
+            new CellColor?[] { null, CellColor.PaleBlue, null, CellColor.PaleBlue,
+                CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
+            }
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
 
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Vector2> projectilesMonitor = new();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesMonitor);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -133,27 +136,12 @@ public class GameLogicTest {
 
     [Test]
     public void TestZTetrominoEliminationAlmostWholeRegion() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 3,
-            v2i(1, 3), CellColor.Yellow,
-            CellColor.Green, 8,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 3, projectileSpeed: 8);
         var wall = new CellColor?[] {null, null, null, null,
             CellColor.Red, CellColor.Red, CellColor.Red, null
         };
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Vector2> projectilesMonitor = new();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesMonitor);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -171,26 +159,11 @@ public class GameLogicTest {
 
     [Test]
     public void TestZTetrominoEliminationLargeRegion() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 3,
-            v2i(1, 3), CellColor.Yellow,
-            CellColor.Green, 8,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 3, projectileSpeed: 8);
         var wall = new CellColor?[] {null, null, null, null,
             CellColor.Red, CellColor.Red, CellColor.Red, CellColor.Red };
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Vector2> projectilesMonitor = new();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesMonitor);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -208,19 +181,9 @@ public class GameLogicTest {
 
     [Test]
     public void TestPlayerRotationInWrongPlace() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(5, 3), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(5, 3), scrollTime: 5, projectileSpeed: 1);
         CellColor?[][] walls = new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Green, null,
-                null, null, null, null
-            },
+            new CellColor?[] {null, null, CellColor.Green, null, null, null, null, null},
             EMPTY_WALL_8,
             EMPTY_WALL_8,
             new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
@@ -230,14 +193,6 @@ public class GameLogicTest {
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        var plTetromonoCollector = new StreamItemCollector<PlayerTetromino>();
-        gameLogic.PlayerTetrominoStream.Subscribe(plTetromonoCollector);
-        var gameOverCollector = new StreamItemCollector<Unit>();
-        gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
-            .Subscribe(gameOverCollector);
 
 
         // Imitation
@@ -264,30 +219,18 @@ public class GameLogicTest {
 
     [Test]
     public void TestEliminationStickTetrominoFirst() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(3, 2), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 5, projectileSpeed: 1);
         CellColor?[][] walls = new CellColor?[][] {
-         new CellColor?[] {null, null, CellColor.PaleBlue, null,
-            CellColor.PaleBlue, CellColor.PaleBlue, null, null
-        },
-         new CellColor?[] {null, null, null, CellColor.Green,
-            null, null, null, null
-        } };
+            new CellColor?[] {null, null, CellColor.PaleBlue, null,
+                CellColor.PaleBlue, CellColor.PaleBlue, null, null
+            },
+            new CellColor?[] {null, null, null, CellColor.Green,
+                null, null, null, null
+            }
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -304,32 +247,18 @@ public class GameLogicTest {
 
     [Test]
     public void TestFastProjectileLanding() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(3, 2), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 5, projectileSpeed: 1);
         CellColor?[][] walls = new CellColor?[][] {
-         new CellColor?[] {null, null, CellColor.Green, null,
-            null, null, null, null
-        },
-         new CellColor?[] {null, null, CellColor.PaleBlue, null,
-            CellColor.PaleBlue, CellColor.PaleBlue, null, null
-        } };
+            new CellColor?[] {null, null, CellColor.Green, null,
+                null, null, null, null
+            },
+            new CellColor?[] {null, null, CellColor.PaleBlue, null,
+                CellColor.PaleBlue, CellColor.PaleBlue, null, null
+            }
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -346,29 +275,15 @@ public class GameLogicTest {
 
     [Test]
     public void TestSeveralFastProjectileLanding() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 5,
-            v2i(0, 2), CellColor.Yellow,
-            CellColor.Green, 1,
-            1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 2), scrollTime: 5, projectileSpeed: 1);
         CellColor?[][] walls = new CellColor?[][] {
-         new CellColor?[] {null, null, CellColor.Green, CellColor.Green,
-            CellColor.Green, null, null, null
-        } };
+            new CellColor?[] {null, null, CellColor.Green, CellColor.Green,
+                CellColor.Green, null, null, null
+            }
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -391,28 +306,15 @@ public class GameLogicTest {
 
     [Test]
     public void TestProjectileLandsWhenTableShifts() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 2,
-            v2i(3, 2), CellColor.Yellow,
-            CellColor.Green, 1,
-            1f,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 2, projectileSpeed: 1);
+
         CellColor?[][] walls = new CellColor?[][] {
-         new CellColor?[] {null, null, CellColor.Red, null,
-            null, null, null, null
-        }, new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null
-        }, EMPTY_WALL_8, EMPTY_WALL_8 };
+            new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null},
+            new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null},
+            EMPTY_WALL_8, EMPTY_WALL_8 };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -431,30 +333,16 @@ public class GameLogicTest {
 
     [Test]
     public void TestProjectileDoesNotFlyAwayDuringLongFrameUpdate() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(3, 2), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 2,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 1, projectileSpeed: 2);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
             new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
             EMPTY_WALL_8,
-            EMPTY_WALL_8 };
+            EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -463,36 +351,19 @@ public class GameLogicTest {
         eventProvider.Publisher.OnNext(new FrameUpdateEvent(2));
 
         IEnumerable<Vector2Int> newCells = newCellsCollector.items.Select(vc => vc.Position);
-        Assert.True(
-            (new Vector2Int[] { v2i(7, 3) })
-            .HasSameContent(newCells)
-        );
+        Assert.True((new Vector2Int[] { v2i(7, 3) }).HasSameContent(newCells));
     }
 
     [Test]
     public void TestScrollOfFrozenCells() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(2, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(2, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -518,30 +389,14 @@ public class GameLogicTest {
 
     [Test]
     public void TestEliminationScrolledT() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -558,41 +413,22 @@ public class GameLogicTest {
         eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
 
         IEnumerable<Vector2Int> newCells = newCellsCollector.items.Select(vc => vc.Position).ToArray();
-        Assert.True(
-            (new Vector2Int[] { v2i(5, 3), v2i(6, 2) })
-            .HasSameContent(newCells)
-        );
+        Assert.True((new Vector2Int[] { v2i(5, 3), v2i(6, 2) }).HasSameContent(newCells));
         var eliminatedCells = eliminatedCellsCollecter.items.Select(c => c.Position).ToArray();
         Assert.True(new Vector2Int[] { v2i(3, 2), v2i(4, 2), v2i(5, 2), v2i(4, 3) }.HasSameContent(eliminatedCells));
     }
 
     [Test]
     public void TestEliminationScrolledL() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
              new CellColor?[] {null, null, null, null, CellColor.Orange, null, null, null },
              new CellColor?[] {null, null, CellColor.Orange, null, null, null, null, null },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -605,40 +441,22 @@ public class GameLogicTest {
         eventProvider.Publisher.OnNext(new FrameUpdateEvent(1f));
 
         IEnumerable<Vector2Int> newCells = newCellsCollector.items.Select(vc => vc.Position).ToArray();
-        Assert.True(
-            (new Vector2Int[] { v2i(6, 2) }).HasSameContent(newCells)
-        );
+        Assert.True((new Vector2Int[] { v2i(6, 2) }).HasSameContent(newCells));
         var eliminatedCells = eliminatedCellsCollecter.items.Select(c => c.Position).ToArray();
         Assert.True(new Vector2Int[] { v2i(5, 4), v2i(5, 3), v2i(5, 2), v2i(6, 2) }.HasSameContent(eliminatedCells));
     }
 
     [Test]
     public void TestEliminationScrolledBackL() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {null, null, CellColor.Blue, null, null, null, null, null },
             new CellColor?[] {null, CellColor.Blue, CellColor.Blue, null, null, null, null, null },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -653,31 +471,15 @@ public class GameLogicTest {
 
     [Test]
     public void TestWallElimination() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
                 CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -695,31 +497,15 @@ public class GameLogicTest {
 
     [Test]
     public void TestWallEliminationWithPlayerTetrominoBodyOnMove() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
                 CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -741,31 +527,15 @@ public class GameLogicTest {
 
     [Test]
     public void TestWallEliminationWithPlayerTetrominoBodyOnScroll() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(3, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(3, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
                 CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
-            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8 };
+            EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
+        };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -780,30 +550,13 @@ public class GameLogicTest {
 
     [Test]
     public void TestFreezingParticleOnBorder() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -815,37 +568,18 @@ public class GameLogicTest {
         eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
 
         IEnumerable<Cell> newCells = newCellsCollector.items.ToArray();
-        Assert.True(
-            (new Cell[] { new Cell(v2i(1, 0), CellColor.Green) }).HasSameContent(newCells)
-        );
+        Assert.True((new Cell[] { new Cell(v2i(1, 0), CellColor.Green) }).HasSameContent(newCells));
     }
 
     [Test]
     public void TestShootingAtBorder() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(0, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<Cell> newCellsCollector = new StreamItemCollector<Cell>();
-        gameLogic.NewCellStream.Subscribe(newCellsCollector);
-        StreamItemCollector<Vector2> projectilesCollector = new StreamItemCollector<Vector2>();
-        gameLogic.ProjectileCoordinatesStream.Subscribe(projectilesCollector);
-        StreamItemCollector<Cell> eliminatedCellsCollecter = new();
-        gameLogic.EliminatedBricksStream.Subscribe(eliminatedCellsCollecter);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -863,28 +597,14 @@ public class GameLogicTest {
 
     [Test]
     public void TestGameOverByNewColumnScroll() {
-        GameSettings gameSettings = new GameSettings(
-            8, 8, 1,
-            v2i(6, 1), CellColor.Yellow,
-            CellColor.Green, projectileSpeed: 8,
-            autoStartTime: 1,
-            true, true
-        );
-        TestEventProvider eventProvider = new TestEventProvider();
-        Mock<ICellGenerator> cellGeneratorMock = new Mock<ICellGenerator>();
+        setUp(w: 8, h: 8, playerLocation: v2i(6, 1), scrollTime: 1, projectileSpeed: 8);
         CellColor?[][] walls = new CellColor?[][] {
-            new CellColor?[]{null, null, CellColor.Red, null,
-                null, null, null, null},
+            new CellColor?[]{null, null, CellColor.Red, null, null, null, null, null},
             EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8, EMPTY_WALL_8
         };
         int wallCounter = 0;
         cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
-        ICellGenerator testCellGenerator = cellGeneratorMock.Object;
-        var gameLogic = new GameLogic(gameSettings, eventProvider, new TetrominoPatterns(), testCellGenerator);
-
-        StreamItemCollector<GamePhase> gamePhaseCollector = new StreamItemCollector<GamePhase>();
-        gameLogic.GamePhaseStream.Subscribe(gamePhaseCollector);
 
         // Imitation
         eventProvider.Publisher.OnNext(new StartNewGameEvent());
