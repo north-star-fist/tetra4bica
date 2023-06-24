@@ -26,9 +26,15 @@ namespace Tetra4bica.Graphics {
         [Inject(Id = PoolId.SCORE_CELLS)]
         IObjectPool<GameObject> scoreParticlesPool;
 
-        public TMP_Text scoreTextTMP;
+        [Tooltip("Root Rect Transform of the whole scores component (label + count)")]
+        public RectTransform scoresPanel;
+        [Tooltip("TextMeshPro component with score counter")]
+        public TMP_Text scoreCountTextTMP;
         public AudioResource scoreGainSfx;
 
+        [Tooltip("Size of Scores on Game Over event")]
+        public Vector2 scoreRectTransformFinalScale = Vector2.one * 4;
+        public RectTransform gameOverScoreTextPosition;
 
         Vector3 scoreParticlesLandingWorldPosition;
 
@@ -36,14 +42,17 @@ namespace Tetra4bica.Graphics {
         uint trueScores;
         private TweenCellParticleWrapper[,] cellWrappers;
 
-        private void Awake() {
-            if (scoreTextTMP == null) {
-                throw new ArgumentException($"{nameof(scoreTextTMP)} is undefined");
+        Sequence scoresFinalAnimation;
+
+        private void Start() {
+            if (scoreCountTextTMP == null) {
+                throw new ArgumentException($"{nameof(scoreCountTextTMP)} is undefined");
             }
             Setup(
                 gameEvents.GameStartedStream,
                 gameEvents.EliminatedBricksStream,
-                gameEvents.ScoreStream
+                gameEvents.ScoreStream,
+                gameEvents.GamePhaseStream.Where(g => g == GamePhase.GameOver).AsUnitObservable()
             );
         }
 
@@ -51,14 +60,29 @@ namespace Tetra4bica.Graphics {
         void Setup(
             IObservable<Vector2Int> gameStartedStream,
             IObservable<Cell> eliminatedBricksObservable,
-            IObservable<uint> scoresObservable
+            IObservable<uint> scoresObservable,
+            IObservable<Unit> gameOverObservable
         ) {
-            gameStartedStream.DelayFrame(2).Subscribe(size => { createDoTweenCache(size); setUiScores(0); });
+            gameStartedStream.DelayFrame(2).Subscribe(size => {
+                createDoTweenCache(size);
+                resetScoreTextTransform();
+                setUiScores(0);
+            });
             gameStartedStream.First().DelayFrame(1).Subscribe(
-                _ => updateScoresDestinationPosition()
+                _ => {
+                    updateScoresDestinationPosition();
+                    initScoresFinalAnimation();
+                }
             );
             eliminatedBricksObservable.Subscribe(cell => launchDestroyedBrickAnimation(cell.Position, cell.Color));
             scoresObservable.Subscribe(scores => this.trueScores = scores);
+            gameOverObservable.Subscribe((_) => enlargeScores());
+
+            void resetScoreTextTransform() {
+                scoresPanel.localScale = Vector3.one;
+                scoresPanel.localScale = Vector3.one;
+                scoresFinalAnimation.Rewind();
+            }
         }
 
         private void createDoTweenCache(Vector2Int size) {
@@ -105,12 +129,12 @@ namespace Tetra4bica.Graphics {
                 return;
             }
             this.uiScores = uiScores;
-            scoreTextTMP.text = uiScores.ToString("D4");
+            scoreCountTextTMP.text = uiScores.ToString("D4");
         }
 
         private void updateScoresDestinationPosition()
             => scoreParticlesLandingWorldPosition
-                = Camera.main.ScreenToWorldPoint(scoreTextTMP.transform.position);
+                = Camera.main.ScreenToWorldPoint(scoreCountTextTMP.transform.position);
 
         private class TweenCellParticleWrapper {
 
@@ -184,6 +208,19 @@ namespace Tetra4bica.Graphics {
             public SpriteRenderer getRenderer() {
                 return getPooledCell().GetComponent<SpriteRenderer>();
             }
+        }
+
+        private void enlargeScores() {
+            scoresFinalAnimation.Play();
+        }
+
+        private void initScoresFinalAnimation() {
+            scoresFinalAnimation = DOTween.Sequence()
+                .Join(DOTween.To(() => scoresPanel.localScale, s => scoresPanel.localScale = s,
+                    scoreRectTransformFinalScale.toVector3(), 1f))
+                .Join(DOTween.To(() => scoresPanel.position, p => scoresPanel.position = p,
+                    gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center), 1f));
+
         }
     }
 }
