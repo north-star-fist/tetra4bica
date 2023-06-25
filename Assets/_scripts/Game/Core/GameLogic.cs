@@ -175,7 +175,7 @@ namespace Tetra4bica.Core {
                 checkWallsAroundPlayerTetramino();
             });
 
-            // Running elimination of wall on thefollowing frame update because when table scrolls onto player tetramino
+            // Running elimination of wall on the following frame update because when table scrolls onto player tetramino
             // View should be updated first, and then exploded
             _wallEliminationStream.SelectMany(
                 wData => _frameUpdateStream.First().Select(_ => wData))
@@ -474,11 +474,12 @@ namespace Tetra4bica.Core {
                 (ColorTable table, CellColor color, Vector2Int neighbourCell)
                     => calculateColorScore(table, color, neighbourCell),
                 gameSettings.frozenProjectileColor,
-                matchedCellsBuffer
+                matchedCellsBuffer,
+                out CellColor? patternColor
             );
             if (matchedCellsCount > 0) {
                 for (int i = 0; i < matchedCellsCount; i++) {
-                    eliminateCell(matchedCellsBuffer[i]);
+                    eliminateCell(new Cell(matchedCellsBuffer[i], patternColor.Value));
                 }
             } else {
                 // We added the cell into the table above, so it must have some color
@@ -493,7 +494,8 @@ namespace Tetra4bica.Core {
             ICellPatterns cellPatterns,
             Func<ColorTable, CellColor, Vector2Int, uint> calculateColorScore,
             CellColor defaultColor,
-            Vector2Int[] matchedCellsBuffer
+            Vector2Int[] matchedCellsBuffer,
+            out CellColor? patternColor
         ) {
             uint neighbourCellsCount = 0;
             foreach (Vector2Int dir in Direction.FOUR_DIRECTIONS) {
@@ -506,7 +508,7 @@ namespace Tetra4bica.Core {
             }
 
             uint matched = gameState.gameTable.FindPattern(
-                cellPatterns, cellPos, matchedCellsBuffer, neighbourCellsArray, neighbourCellsCount
+                cellPatterns, cellPos, matchedCellsBuffer, neighbourCellsArray, neighbourCellsCount, out patternColor
             );
             if (matched > 0) {
                 // if there was a pattern match - going out to explode cells
@@ -632,20 +634,23 @@ namespace Tetra4bica.Core {
             var plCells = gameState.playerTetromino.GetVerticalCells(wallX);
             // blocks destruction
             for (int y = 0; y < gameState.gameTable.size.y; y++) {
-                if (
-                    !plCells.Contains(new Vector2Int(wallX, y))
-                    || v2i(wallX, y) == withProjectile
-                ) {
-                    eliminateCell(v2i(wallX, y));
+                var pos = v2i(wallX, y);
+                if (!plCells.Contains(new Vector2Int(wallX, y)) || pos == withProjectile) {
+                    CellColor? cellColor = pos != withProjectile
+                        ? gameState.gameTable[pos]
+                        : gameSettings.frozenProjectileColor;
+                    if (cellColor.HasValue) {
+                        eliminateCell(new Cell(pos, cellColor.Value));
+                    } else {
+                        Debug.LogError($"Trying to eliminate EMPTY cell {pos}!");
+                    }
                 }
             }
         }
 
-        private void eliminateCell(Vector2Int pos) {
-            CellColor oldColor = gameState.gameTable[pos.x, pos.y]
-                .GetValueOrDefault(gameSettings.frozenProjectileColor);
-            gameState.gameTable.RemoveCell(pos);
-            _eliminatedBricksStream.OnNext(new Cell(pos, oldColor));
+        private void eliminateCell(Cell cell) {
+            gameState.gameTable.RemoveCell(cell.Position);
+            _eliminatedBricksStream.OnNext(cell);
             gameState.scores++;
             _scoreStream.OnNext(gameState.scores);
         }

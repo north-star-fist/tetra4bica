@@ -76,7 +76,8 @@ public class ColorTableTest {
         table1.SetCell(Vector2Int.right, CellColor.Yellow);
         table1.SetCell(Vector2Int.up, CellColor.Yellow);
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
     [Test]
@@ -88,7 +89,8 @@ public class ColorTableTest {
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
         table1.SetCell(Vector2Int.up * 2, CellColor.Yellow);
         table1.SetCell(Vector2Int.one + Vector2Int.up, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
     [Test]
@@ -100,85 +102,93 @@ public class ColorTableTest {
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
         table1.SetCell(Vector2Int.up * 2, CellColor.Yellow);
         table1.SetCell(Vector2Int.one + Vector2Int.up, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
 
     [Test]
-    public void TestFindGreenPatternStickHorizontalRegionGotFromTableItself() {
+    public void TestFindPaleBluePatternStickHorizontalRegionGotFromTableItself() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(Vector2Int.zero, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right * 2, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right * 3, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right * 4, CellColor.PaleBlue);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.PaleBlue, pCol);
     }
 
     [Test]
-    public void TestFindGreenPatternStickVerticalRegionGotFromTableItself() {
+    public void TestFindPaleBluePatternStickVerticalRegionGotFromTableItself() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(Vector2Int.zero, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up * 2, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up * 3, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up * 4, CellColor.PaleBlue);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.up, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.up, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.PaleBlue, pCol);
     }
 
     [Test]
-    public void TestFindPurpleTPatterStraight() {
+    public void TestFindMagentaTPatterStraight() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
         table1.SetCell(v2i(2, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
     [Test]
-    public void TestFindPurpleTPatterWithNoTOnTable() {
+    public void TestFindMagentaTPatterWithNoTOnTable() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
         table1.SetCell(v2i(2, 1), CellColor.Magenta);
         table1.SetCell(v2i(2, 0), CellColor.Magenta);
 
-        Assert.AreEqual(0, table1.FindPattern(new TetrominoPatterns(), v2i(2, 0), matchedCellsBuffer));
+        Assert.AreEqual(0, table1.FindPattern(new TetrominoPatterns(), v2i(2, 0), matchedCellsBuffer, out var pCol));
+        Assert.IsFalse(pCol.HasValue);
     }
 
     [Test]
-    public void TestFindPurpleTPatter90Clockwise() {
+    public void TestFindMagentaTPatter90Clockwise() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 2), CellColor.Magenta);
         table1.SetCell(v2i(1, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
     [Test]
-    public void TestFindPurpleTPatter90CounterClockwise() {
+    public void TestFindMagentaTPatter90CounterClockwise() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
         table1.SetCell(v2i(0, 2), CellColor.Magenta);
         table1.SetCell(v2i(0, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
     [Test]
-    public void TestFindPurpleTPatter180() {
+    public void TestFindMagentaTPatter180() {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 0), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(0, 2), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
 
@@ -191,7 +201,13 @@ public class ColorTableTest {
         table1.SetCell(v2i(2, 1), CellColor.Orange);
         table1.SetCell(v2i(2, 0), CellColor.Orange);
 
-        Assert.AreEqual(0, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer));
+        Assert.AreEqual(0, table1.FindPattern(
+            new TetrominoPatterns(),
+            Vector2Int.right,
+            matchedCellsBuffer,
+            out var pCol)
+        );
+        Assert.IsFalse(pCol.HasValue);
     }
 
     [Test]
@@ -203,7 +219,8 @@ public class ColorTableTest {
         table1.SetCell(v2i(2, 1) + shift, CellColor.Orange);
         table1.SetCell(v2i(2, 2) + shift, CellColor.Orange);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1) + shift, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1) + shift, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Orange, pCol);
     }
 
     [Test]
@@ -221,7 +238,8 @@ public class ColorTableTest {
             { true, false, false }
         };
         patterns.Add(CellColor.Orange, MatrixUtil.RotateBy90(L, true));
-        Assert.AreEqual(4, table1.FindPattern(patterns, v2i(0, 1) + shift, matchedCellsBuffer));
+        Assert.AreEqual(4, table1.FindPattern(patterns, v2i(0, 1) + shift, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(CellColor.Orange, pCol);
     }
 
 

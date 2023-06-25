@@ -76,7 +76,8 @@ namespace Tetra4bica.Core {
         public uint FindPattern(
             ICellPatterns patternsBank,
             Vector2Int includeCell,
-            Vector2Int[] matchedCellsBuffer
+            Vector2Int[] matchedCellsBuffer,
+            out CellColor? patternColor
         ) {
             uint neighbourCellsCount = 0;
             foreach (Vector2Int dir in Direction.FOUR_DIRECTIONS) {
@@ -88,7 +89,14 @@ namespace Tetra4bica.Core {
                 }
             }
 
-            return FindPattern(patternsBank, includeCell, matchedCellsBuffer, neighbourCellsArray, neighbourCellsCount);
+            return FindPattern(
+                patternsBank,
+                includeCell,
+                matchedCellsBuffer,
+                neighbourCellsArray,
+                neighbourCellsCount,
+                out patternColor
+            );
         }
 
         /// <summary>
@@ -99,8 +107,10 @@ namespace Tetra4bica.Core {
             Vector2Int includeCell,
             Vector2Int[] matchedCellsBuffer,
             Cell[] neighbourCellsArray,
-            uint neighboursCount
+            uint neighboursCount,
+            out CellColor? patternColor
         ) {
+            patternColor = null;
             if (neighboursCount == 0) {
                 return 0;
             }
@@ -113,11 +123,16 @@ namespace Tetra4bica.Core {
                         patternsBank[neighbour.Color], neighbour.Color, includeCell, matchedCellsBuffer
                     );
                     if (matchedCount > 0) {
+                        patternColor = neighbour.Color;
                         return matchedCount;
                     }
                 }
             } else {
-                return FindPattern(patternsBank[cellColor.Value], cellColor.Value, includeCell, matchedCellsBuffer);
+                var matchedCount = FindPattern(patternsBank[cellColor.Value], cellColor.Value, includeCell, matchedCellsBuffer);
+                if (matchedCount > 0) {
+                    patternColor = cellColor.Value;
+                }
+                return matchedCount;
             }
             return 0;
         }
