@@ -536,7 +536,6 @@ public class GameLogicTest {
             w, h, scrollTime,
             playerLocation, CellColor.Yellow,
             CellColor.Green, projectileSpeed,
-            1,
             true, true
         );
         eventProvider = new TestEventProvider();

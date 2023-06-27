@@ -99,7 +99,6 @@ namespace Tetra4bica.Core {
             readonly public CellColor playerColor;
             readonly public CellColor frozenProjectileColor;
             readonly public float projectileSpeed;
-            readonly public float autoStartTime;
             readonly public bool lateralBricksStopProjectiles;
             readonly public bool projectilesCollideMapBounds;
 
@@ -111,7 +110,6 @@ namespace Tetra4bica.Core {
                 CellColor playerColor,
                 CellColor frozenProjectileColor,
                 float projectileSpeed,
-                float autoStartTime,
                 bool lateralBricksStopProjectiles,
                 bool projectilesCollideMapBounds
             ) {
@@ -122,7 +120,6 @@ namespace Tetra4bica.Core {
                 this.playerColor = playerColor;
                 this.frozenProjectileColor = frozenProjectileColor;
                 this.projectileSpeed = projectileSpeed;
-                this.autoStartTime = autoStartTime;
                 this.lateralBricksStopProjectiles = lateralBricksStopProjectiles;
                 this.projectilesCollideMapBounds = projectilesCollideMapBounds;
             }
@@ -187,14 +184,6 @@ namespace Tetra4bica.Core {
 
             _frozenProjectilesInnerStream.Subscribe(handleNewCell);
             playerInputBus.GameStartStream
-#if !UNITY_EDITOR
-            // Autostart is added only in production not to bother Zenject validation
-            .Merge(new[] {
-                // Autostart after splash screen animation
-                Observable.Timer(TimeSpan.FromSeconds(gameSettings.autoStartTime)).AsUnitObservable()
-                .Where(_ => gameState.gamePhase == GamePhase.NotStarted)
-            })
-#endif
             .Subscribe(tableSize => SetPhase(GamePhase.Started));
             playerInputBus.GamePauseResumeStream.Subscribe(
                 paused => SetPhase(paused ? GamePhase.Paused : GamePhase.Started)

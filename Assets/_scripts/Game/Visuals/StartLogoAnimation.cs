@@ -21,7 +21,10 @@ namespace Tetra4bica.Graphics {
 
 
         void Start() {
-            SoundUtils.PlaySound(audioSource, sfx);
+            if (Application.platform != RuntimePlatform.WebGLPlayer) {
+                // WebGL players mostly do not allow to play sound until any key pressed. So just skipping it
+                SoundUtils.PlaySound(audioSource, sfx);
+            }
             transform.eulerAngles = new Vector3(0, 0, startRotation);
             transform.localScale = startScale;
             transform.DOLocalRotate(new Vector3(0, 0, endRotation), animationTime, RotateMode.FastBeyond360).Play();

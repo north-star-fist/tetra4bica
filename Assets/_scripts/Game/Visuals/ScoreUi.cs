@@ -1,4 +1,5 @@
 using DG.Tweening;
+using DG.Tweening.Core;
 using Sergei.Safonov.Audio;
 using Sergei.Safonov.Utility;
 using System;
@@ -34,6 +35,9 @@ namespace Tetra4bica.Graphics {
 
         [Tooltip("Size of Scores on Game Over event")]
         public Vector2 scoreRectTransformFinalScale = Vector2.one * 4;
+        [Tooltip("Score panel ordinary position")]
+        public RectTransform scoreTextPosition;
+        [Tooltip("Score panel game over position")]
         public RectTransform gameOverScoreTextPosition;
 
         Vector3 scoreParticlesLandingWorldPosition;
@@ -42,9 +46,13 @@ namespace Tetra4bica.Graphics {
         uint trueScores;
         private TweenCellParticleWrapper[,] cellWrappers;
 
+        TweenerCore<Vector3, Vector3, DG.Tweening.Plugins.Options.VectorOptions> finalPositionTween;
         Sequence scoresFinalAnimation;
 
+        bool isWebGlPlayer;
+
         private void Start() {
+            isWebGlPlayer = Application.platform == RuntimePlatform.WebGLPlayer;
             if (scoreCountTextTMP == null) {
                 throw new ArgumentException($"{nameof(scoreCountTextTMP)} is undefined");
             }
@@ -79,11 +87,13 @@ namespace Tetra4bica.Graphics {
             gameOverObservable.Subscribe((_) => enlargeScores());
 
             void resetScoreTextTransform() {
-                scoresPanel.localScale = Vector3.one;
-                scoresPanel.localScale = Vector3.one;
+                //scoresPanel.localScale = Vector3.one;
+                finalPositionTween.Rewind();
                 scoresFinalAnimation.Rewind();
+                scoresPanel.position = scoreTextPosition.TransformPoint(scoreTextPosition.rect.center);
             }
         }
+
 
         private void createDoTweenCache(Vector2Int size) {
             cellWrappers = new TweenCellParticleWrapper[size.x, size.y];
@@ -106,7 +116,9 @@ namespace Tetra4bica.Graphics {
         }
 
         private void forEachCellEliminated() {
-            SoundUtils.PlaySound(uiSoundsAudioSource, scoreGainSfx);
+            if (!isWebGlPlayer) {
+                SoundUtils.PlaySound(uiSoundsAudioSource, scoreGainSfx);
+            }
             if (uiScores < trueScores) {
                 setUiScores(uiScores + 1);
             } else {
@@ -146,8 +158,13 @@ namespace Tetra4bica.Graphics {
             private Sequence scoreTweenSeq;
             Action onComplete;
 
-            public TweenCellParticleWrapper(IObjectPool<GameObject> cellPool, Func<Vector2> scorePosition, Vector2 startPos,
-                VisualSettings visualSettings, Action onTweenComplete) {
+            public TweenCellParticleWrapper(
+                IObjectPool<GameObject> cellPool,
+                Func<Vector2> scorePosition,
+                Vector2 startPos,
+                VisualSettings visualSettings,
+                Action onTweenComplete
+            ) {
                 this.pool = cellPool;
                 this.scorePosition = scorePosition;
                 startPosition = startPos;
@@ -211,15 +228,26 @@ namespace Tetra4bica.Graphics {
         }
 
         private void enlargeScores() {
+            // Canvas layout can be changed with time, especially in WebGL player where game viewport is 
+            // controlled by browser. So score text positions should be synchronised appropriatelly.
+            finalPositionTween.ChangeStartValue(scoreTextPosition.TransformPoint(scoreTextPosition.rect.center));
+            finalPositionTween.ChangeEndValue(gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center));
+            finalPositionTween.Play();
             scoresFinalAnimation.Play();
         }
 
         private void initScoresFinalAnimation() {
+            finalPositionTween =
+                DOTween.To(
+                    () => scoresPanel.position,
+                    p => scoresPanel.position = p,
+                    gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center),
+                    1f
+                );
             scoresFinalAnimation = DOTween.Sequence()
                 .Join(DOTween.To(() => scoresPanel.localScale, s => scoresPanel.localScale = s,
-                    scoreRectTransformFinalScale.toVector3(), 1f))
-                .Join(DOTween.To(() => scoresPanel.position, p => scoresPanel.position = p,
-                    gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center), 1f));
+                    scoreRectTransformFinalScale.toVector3(), 1f));
+            //.Join(finalPositionTween);
 
         }
     }

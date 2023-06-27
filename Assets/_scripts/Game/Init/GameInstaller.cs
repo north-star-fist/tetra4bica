@@ -27,9 +27,6 @@ namespace Tetra4bica.Init {
         [Tooltip("Projectile speed in cells per second")]
         public float projectileSpeed = 5f;
 
-        [Tooltip("Time delay after which the game will start automatically even if player did not touch the screen")]
-        public float autoStartTime = 2f;
-
         [Tooltip("Projectiles are stopped touching bricks if this flag is on. Like cells are rubberish and brake projectiles")]
         public bool lateralBricksStopProjectiles = true;
         [Tooltip("Projectiles are stopped on the floor and ceiling collisions if this flag is on")]
@@ -65,7 +62,6 @@ namespace Tetra4bica.Init {
                 playerColor,
                 frozenProjectileColor,
                 projectileSpeed,
-                autoStartTime,
                 lateralBricksStopProjectiles,
                 projectilesCollideMapBounds
             );
