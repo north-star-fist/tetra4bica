@@ -353,6 +353,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scoresPanel: {fileID: 1230181853}
   scoreCountTextTMP: {fileID: 719259109}
+  scoresBackground: {fileID: 1130171845}
   scoreGainSfx: {fileID: 11400000, guid: 1878ccbdfaddd3f418815076686b3860, type: 2}
   scoreRectTransformFinalScale: {x: 4, y: 4}
   scoreTextPosition: {fileID: 697315466}
@@ -3815,7 +3816,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0

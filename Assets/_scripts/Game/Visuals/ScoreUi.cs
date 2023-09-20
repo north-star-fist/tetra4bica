@@ -9,6 +9,7 @@ using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.UI;
 using Zenject;
 
 namespace Tetra4bica.Graphics {
@@ -31,6 +32,8 @@ namespace Tetra4bica.Graphics {
         public RectTransform scoresPanel;
         [Tooltip("TextMeshPro component with score counter")]
         public TMP_Text scoreCountTextTMP;
+        [Tooltip("Mask above the score text. Put it here todisable on game over")]
+        public Image scoresBackground;
         public AudioResource scoreGainSfx;
 
         [Tooltip("Size of Scores on Game Over event")]
@@ -88,6 +91,7 @@ namespace Tetra4bica.Graphics {
 
             void resetScoreTextTransform() {
                 //scoresPanel.localScale = Vector3.one;
+                scoresBackground.enabled = true;
                 finalPositionTween.Rewind();
                 scoresFinalAnimation.Rewind();
                 scoresPanel.position = scoreTextPosition.TransformPoint(scoreTextPosition.rect.center);
@@ -247,6 +251,7 @@ namespace Tetra4bica.Graphics {
             scoresFinalAnimation = DOTween.Sequence()
                 .Join(DOTween.To(() => scoresPanel.localScale, s => scoresPanel.localScale = s,
                     scoreRectTransformFinalScale.toVector3(), 1f));
+            scoresFinalAnimation.onPlay = () => { scoresBackground.enabled = false; };
             //.Join(finalPositionTween);
 
         }

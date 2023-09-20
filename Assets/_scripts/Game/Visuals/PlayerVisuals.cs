@@ -47,7 +47,7 @@ namespace Tetra4bica.Graphics {
             this.backComponent = backComponent;
             playerTetrominoObservable.Subscribe(renderPlayer);
             gameOverObservable.WithLatestFrom(playerTetrominoObservable, (_, tetromino) => tetromino)
-                .Subscribe(t => animatePlayerDeath(t));
+                .Subscribe(t => _ = animatePlayerDeath(t));
 
             playerCellPool = backComponent.playerCellPool;
             for (int i = 0; i < PLAYER_TETRAMINO_CELL_COUNT; i++) {
