@@ -21,7 +21,7 @@ public class PlayerTetrominoTest {
         Vector2Int pos = v2i(3, 4);
         Vector2Int shift = v2i(-5, 30);
         var tetromino = new PlayerTetromino(pos, CellColor.Orange);
-        var shiftedTetromino = tetromino.withPosition(pos + shift);
+        var shiftedTetromino = tetromino.WithPosition(pos + shift);
         Assert.AreEqual(pos + shift, shiftedTetromino.Position);
         var expectedTetromino = new PlayerTetromino(pos + shift, CellColor.Orange);
         Assert.AreEqual(expectedTetromino, shiftedTetromino);
@@ -34,7 +34,7 @@ public class PlayerTetrominoTest {
         var rotatedTetromino = tetromino.Rotate(true);
         var expectedTetromino = new PlayerTetromino(
             v2i(2, 4),
-            patterns.T_PATTERNS.First(),
+            patterns.TPATTERNS.First(),
             v2i(1, 1),
             v2i(1, -1),
             Vector2Int.down,
@@ -50,7 +50,7 @@ public class PlayerTetrominoTest {
         var rotatedTetromino = tetromino.Rotate(false);
         var expectedTetromino = new PlayerTetromino(
             position: v2i(2, 5),
-           formMatrix: patterns.T_PATTERNS.Skip(2).First(),
+           formMatrix: patterns.TPATTERNS.Skip(2).First(),
             pivot: v2i(1, 0),
             muzzle: v2i(1, 2),
             direction: Vector2Int.up,
@@ -66,7 +66,7 @@ public class PlayerTetrominoTest {
         var rotatedTetromino = tetromino.Rotate(true);
         var expectedTetromino = new PlayerTetromino(
             v2i(4, 0),
-            patterns.T_PATTERNS.First(),
+            patterns.TPATTERNS.First(),
             v2i(1, 1),
             v2i(1, -1),
             Vector2Int.down,

@@ -1,8 +1,8 @@
+﻿using System;
 using DG.Tweening;
 using DG.Tweening.Core;
 using Sergei.Safonov.Audio;
 using Sergei.Safonov.Utility;
-using System;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using TMPro;
@@ -12,9 +12,11 @@ using UnityEngine.Pool;
 using UnityEngine.UI;
 using Zenject;
 
-namespace Tetra4bica.Graphics {
+namespace Tetra4bica.Graphics
+{
 
-    public class ScoreUi : MonoBehaviour {
+    public class ScoreUi : MonoBehaviour
+    {
 
         [Inject]
         IGameEvents gameEvents;
@@ -28,20 +30,21 @@ namespace Tetra4bica.Graphics {
         [Inject(Id = PoolId.SCORE_CELLS)]
         IObjectPool<GameObject> scoreParticlesPool;
 
-        [Tooltip("Root Rect Transform of the whole scores component (label + count)")]
-        public RectTransform scoresPanel;
-        [Tooltip("TextMeshPro component with score counter")]
-        public TMP_Text scoreCountTextTMP;
-        [Tooltip("Mask above the score text. Put it here todisable on game over")]
-        public Image scoresBackground;
-        public AudioResource scoreGainSfx;
+        [SerializeField, Tooltip("Root Rect Transform of the whole scores component (label + count)")]
+        private RectTransform scoresPanel;
+        [SerializeField, Tooltip("TextMeshPro component with score counter")]
+        private TMP_Text scoreCountTextTMP;
+        [SerializeField, Tooltip("Mask above the score text. Put it here todisable on game over")]
+        private Image scoresBackground;
+        [SerializeField]
+        private AudioResource scoreGainSfx;
 
-        [Tooltip("Size of Scores on Game Over event")]
-        public Vector2 scoreRectTransformFinalScale = Vector2.one * 4;
-        [Tooltip("Score panel ordinary position")]
-        public RectTransform scoreTextPosition;
-        [Tooltip("Score panel game over position")]
-        public RectTransform gameOverScoreTextPosition;
+        [SerializeField, Tooltip("Size of Scores on Game Over event")]
+        private Vector2 scoreRectTransformFinalScale = Vector2.one * 4;
+        [SerializeField, Tooltip("Score panel ordinary position")]
+        private RectTransform scoreTextPosition;
+        [SerializeField, Tooltip("Score panel game over position")]
+        private RectTransform gameOverScoreTextPosition;
 
         Vector3 scoreParticlesLandingWorldPosition;
 
@@ -54,9 +57,11 @@ namespace Tetra4bica.Graphics {
 
         bool isWebGlPlayer;
 
-        private void Start() {
+        private void Start()
+        {
             isWebGlPlayer = Application.platform == RuntimePlatform.WebGLPlayer;
-            if (scoreCountTextTMP == null) {
+            if (scoreCountTextTMP == null)
+            {
                 throw new ArgumentException($"{nameof(scoreCountTextTMP)} is undefined");
             }
             Setup(
@@ -73,14 +78,17 @@ namespace Tetra4bica.Graphics {
             IObservable<Cell> eliminatedBricksObservable,
             IObservable<uint> scoresObservable,
             IObservable<Unit> gameOverObservable
-        ) {
-            gameStartedStream.DelayFrame(2).Subscribe(size => {
+        )
+        {
+            gameStartedStream.DelayFrame(2).Subscribe(size =>
+            {
                 createDoTweenCache(size);
                 resetScoreTextTransform();
                 setUiScores(0);
             });
             gameStartedStream.First().DelayFrame(1).Subscribe(
-                _ => {
+                _ =>
+                {
                     updateScoresDestinationPosition();
                     initScoresFinalAnimation();
                 }
@@ -89,7 +97,8 @@ namespace Tetra4bica.Graphics {
             scoresObservable.Subscribe(scores => this.trueScores = scores);
             gameOverObservable.Subscribe((_) => enlargeScores());
 
-            void resetScoreTextTransform() {
+            void resetScoreTextTransform()
+            {
                 //scoresPanel.localScale = Vector3.one;
                 scoresBackground.enabled = true;
                 finalPositionTween.Rewind();
@@ -99,13 +108,16 @@ namespace Tetra4bica.Graphics {
         }
 
 
-        private void createDoTweenCache(Vector2Int size) {
+        private void createDoTweenCache(Vector2Int size)
+        {
             cellWrappers = new TweenCellParticleWrapper[size.x, size.y];
-            for (int x = 0; x < size.x; x++) {
-                for (int y = 0; y < size.y; y++) {
+            for (int x = 0; x < size.x; x++)
+            {
+                for (int y = 0; y < size.y; y++)
+                {
                     Vector2 startPos = new Vector2(
-                        visualSettings.BottomLeftPoint.x + x * visualSettings.cellSize,
-                        visualSettings.BottomLeftPoint.y + y * visualSettings.cellSize
+                        visualSettings.BottomLeftPoint.x + x * visualSettings.CellSize,
+                        visualSettings.BottomLeftPoint.y + y * visualSettings.CellSize
                     );
                     cellWrappers[x, y] = new TweenCellParticleWrapper(
                         scoreParticlesPool,
@@ -119,29 +131,37 @@ namespace Tetra4bica.Graphics {
             }
         }
 
-        private void forEachCellEliminated() {
-            if (!isWebGlPlayer) {
+        private void forEachCellEliminated()
+        {
+            if (!isWebGlPlayer)
+            {
                 SoundUtils.PlaySound(uiSoundsAudioSource, scoreGainSfx);
             }
-            if (uiScores < trueScores) {
+            if (uiScores < trueScores)
+            {
                 setUiScores(uiScores + 1);
-            } else {
+            }
+            else
+            {
                 Debug.LogWarning($"There are too many cell particles! More than scores");
             }
         }
 
         private Vector2 getScoreParticlesLandingWorldPosition() => scoreParticlesLandingWorldPosition;
 
-        private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor cell) {
+        private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor cell)
+        {
             var cellWrapper = cellWrappers[xy.x, xy.y];
-            SpriteRenderer renderer = cellWrapper.getRenderer();
+            SpriteRenderer renderer = cellWrapper.GetRenderer();
             renderer.color = Cells.ToUnityColor(cell);
             renderer.enabled = true;
             cellWrapper.GetTweenSequence().Restart();
         }
 
-        private void setUiScores(uint uiScores) {
-            if (this.uiScores == uiScores) {
+        private void setUiScores(uint uiScores)
+        {
+            if (this.uiScores == uiScores)
+            {
                 return;
             }
             this.uiScores = uiScores;
@@ -152,7 +172,8 @@ namespace Tetra4bica.Graphics {
             => scoreParticlesLandingWorldPosition
                 = Camera.main.ScreenToWorldPoint(scoreCountTextTMP.transform.position);
 
-        private class TweenCellParticleWrapper {
+        private class TweenCellParticleWrapper
+        {
 
             IObjectPool<GameObject> pool;
             GameObject cell;
@@ -168,21 +189,23 @@ namespace Tetra4bica.Graphics {
                 Vector2 startPos,
                 VisualSettings visualSettings,
                 Action onTweenComplete
-            ) {
+            )
+            {
                 this.pool = cellPool;
                 this.scorePosition = scorePosition;
                 startPosition = startPos;
 
                 flightTime = UnityEngine.Random.Range(
-                    visualSettings.scoreParticlesFlightTimeMin,
-                    visualSettings.scoreParticlesFlightTimeMax
+                    visualSettings.ScoreParticlesFlightTimeMin,
+                    visualSettings.ScoreParticlesFlightTimeMax
                 );
 
                 scoreTweenSeq = DOTween.Sequence()
-                    .Append(getPositionTween())
-                    .Insert(0, getScaleTween());
-                scoreTweenSeq.onComplete = () => {
-                    getRenderer().enabled = false;
+                    .Append(GetPositionTween())
+                    .Insert(0, GetScaleTween());
+                scoreTweenSeq.onComplete = () =>
+                {
+                    GetRenderer().enabled = false;
                     cell = null;
                     this.onComplete?.Invoke();
                 };
@@ -192,46 +215,56 @@ namespace Tetra4bica.Graphics {
 
             public Sequence GetTweenSequence() { return scoreTweenSeq; }
 
-            public Tween getPositionTween() {
-                return DOTween.To(getPosition, setPosition, startPosition, flightTime).From();
+            public Tween GetPositionTween()
+            {
+                return DOTween.To(GetPosition, SetPosition, startPosition, flightTime).From();
             }
 
-            public Tween getScaleTween() {
-                return DOTween.To(getScale, setScale, (Vector2.one * 0.3f).toVector3(), flightTime);
+            public Tween GetScaleTween()
+            {
+                return DOTween.To(GetScale, SetScale, (Vector2.one * 0.3f).toVector3(), flightTime);
             }
 
-            public Vector2 getPosition() {
+            public Vector2 GetPosition()
+            {
                 return getPooledCell().transform.position;
             }
 
-            public void setPosition(Vector2 newPos) {
+            public void SetPosition(Vector2 newPos)
+            {
                 getPooledCell().transform.position = newPos;
             }
 
-            public Vector3 getScale() {
+            public Vector3 GetScale()
+            {
                 return getPooledCell().transform.localScale;
             }
 
-            public void setScale(Vector3 newScale) {
+            public void SetScale(Vector3 newScale)
+            {
                 getPooledCell().transform.localScale = newScale;
             }
 
-            GameObject getPooledCell() {
-                if (cell == null) {
+            GameObject getPooledCell()
+            {
+                if (cell == null)
+                {
                     cell = pool.Get();
-                    getRenderer().enabled = false;
+                    GetRenderer().enabled = false;
                     cell.transform.SetPositionAndRotation(scorePosition(), Quaternion.Euler(0, 0, UnityEngine.Random.value));
                     cell.transform.localScale = Vector3.one * 7;
                 }
                 return cell;
             }
 
-            public SpriteRenderer getRenderer() {
+            public SpriteRenderer GetRenderer()
+            {
                 return getPooledCell().GetComponent<SpriteRenderer>();
             }
         }
 
-        private void enlargeScores() {
+        private void enlargeScores()
+        {
             // Canvas layout can be changed with time, especially in WebGL player where game viewport is 
             // controlled by browser. So score text positions should be synchronised appropriatelly.
             finalPositionTween.ChangeStartValue(scoreTextPosition.TransformPoint(scoreTextPosition.rect.center));
@@ -240,7 +273,8 @@ namespace Tetra4bica.Graphics {
             scoresFinalAnimation.Play();
         }
 
-        private void initScoresFinalAnimation() {
+        private void initScoresFinalAnimation()
+        {
             finalPositionTween =
                 DOTween.To(
                     () => scoresPanel.position,

@@ -1,28 +1,34 @@
+﻿using System;
 using Sergei.Safonov.Audio;
-using System;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using Zenject;
 
-namespace Tetra4bica.Sound {
+namespace Tetra4bica.Sound
+{
 
-    public class GameMainEventsSfx : MonoBehaviour {
+    public class GameMainEventsSfx : MonoBehaviour
+    {
 
         [Inject]
-        IGameEvents gameLogic;
+        private IGameEvents gameLogic;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource sfxAudioSource;
+        private AudioSource sfxAudioSource;
 
-        public AudioResource gameStartSfx;
-        public AudioResource gameOverSfx;
+        [SerializeField]
+        private AudioResource gameStartSfx;
+        [SerializeField]
+        private AudioResource gameOverSfx;
+        [SerializeField]
+        private AudioSource gameplayBgmAudioSource;
+        [SerializeField]
+        private AudioSource gameOverBgmAudioSource;
 
-        public AudioSource gameplayBgmAudioSource;
-        public AudioSource gameOverBgmAudioSource;
-
-        private void Awake() {
+        private void Awake()
+        {
             Setup(
                 gameLogic.GamePhaseStream.Scan
                 (
@@ -30,7 +36,8 @@ namespace Tetra4bica.Sound {
                     // keeping in mind that the Game can not be started at Paused state (if it can -
                     // game starting sound is played)
                     (GamePhase.NotStarted, GamePhase.NotStarted),
-                    (phaseSwitch, newPhase) => {
+                    (phaseSwitch, newPhase) =>
+                    {
                         return (phaseSwitch.Item2, newPhase);
                     }
                 ).Where(phaseSwitch => phaseSwitch.Item1 is GamePhase.GameOver or GamePhase.NotStarted
@@ -39,12 +46,14 @@ namespace Tetra4bica.Sound {
             );
         }
 
-        void Setup(IObservable<Unit> gameStartedStream, IObservable<Unit> gameOverStream) {
+        void Setup(IObservable<Unit> gameStartedStream, IObservable<Unit> gameOverStream)
+        {
             gameStartedStream.Subscribe(_ => startBgmAfterSfx(gameStartSfx, gameplayBgmAudioSource));
             gameOverStream.Subscribe(_ => startBgmAfterSfx(gameOverSfx, gameOverBgmAudioSource));
         }
 
-        private void startBgmAfterSfx(AudioResource sfx, AudioSource bgmAudioSource) {
+        private void startBgmAfterSfx(AudioResource sfx, AudioSource bgmAudioSource)
+        {
             gameOverBgmAudioSource.Stop();
             gameplayBgmAudioSource.Stop();
             SoundUtils.PlaySound(sfxAudioSource, sfx);

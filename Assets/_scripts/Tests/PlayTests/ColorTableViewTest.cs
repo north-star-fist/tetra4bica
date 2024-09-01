@@ -1,9 +1,9 @@
-using Moq;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
+using NUnit.Framework;
 using Tetra4bica.Core;
 using Tetra4bica.Graphics;
 using Tetra4bica.Init;
@@ -14,9 +14,11 @@ using UnityEngine.TestTools;
 using Zenject;
 using static Sergei.Safonov.Utility.VectorExt;
 
-namespace Tetra4bica.Tests {
+namespace Tetra4bica.Tests
+{
 
-    public class ColorTableViewTest : ZenjectIntegrationTestFixture {
+    public class ColorTableViewTest : ZenjectIntegrationTestFixture
+    {
 
         Mock<IGameEvents> gEventsMock;
 
@@ -35,7 +37,8 @@ namespace Tetra4bica.Tests {
 
         VisualSettings visSettings;
 
-        public void CommonInstall() {
+        public void CommonInstall()
+        {
             PreInstall();
 
             cellsParent = new GameObject();
@@ -60,7 +63,8 @@ namespace Tetra4bica.Tests {
             // Pools
             brickPoolMock = new Mock<IObjectPool<GameObject>>();
             brickPoolMock.Setup(bPool => bPool.Get())
-                .Returns(() => {
+                .Returns(() =>
+                {
                     var go = new GameObject();
                     go.AddComponent<SpriteRenderer>();
                     spawnedBricks.Add(go);
@@ -72,7 +76,8 @@ namespace Tetra4bica.Tests {
 
             explosionPoolMock = new Mock<IObjectPool<GameObject>>();
             explosionPoolMock.Setup(explPool => explPool.Get())
-                .Returns(() => {
+                .Returns(() =>
+                {
                     var go = new GameObject();
                     go.AddComponent<ParticleSystem>();
                     explosions.Add(go);
@@ -89,13 +94,16 @@ namespace Tetra4bica.Tests {
         }
 
         [TearDown]
-        public void CleanUp() {
-            foreach (var g in spawnedBricks) {
+        public void CleanUp()
+        {
+            foreach (var g in spawnedBricks)
+            {
                 GameObject.Destroy(g);
             }
             spawnedBricks.Clear();
 
-            foreach (var g in explosions) {
+            foreach (var g in explosions)
+            {
                 GameObject.Destroy(g);
             }
             explosions.Clear();
@@ -103,11 +111,10 @@ namespace Tetra4bica.Tests {
             GameObject.Destroy(cellsParent);
         }
 
-        [Inject]
-        public ColorTableView tableView;
 
         [UnityTest]
-        public IEnumerator GameStartTest() {
+        public IEnumerator GameStartTest()
+        {
 
             CommonInstall();
 
@@ -124,7 +131,8 @@ namespace Tetra4bica.Tests {
         }
 
         [UnityTest]
-        public IEnumerator ScrollTest() {
+        public IEnumerator ScrollTest()
+        {
 
             CommonInstall();
 
@@ -148,7 +156,8 @@ namespace Tetra4bica.Tests {
         }
 
         [UnityTest]
-        public IEnumerator ScrollNotStartedTest() {
+        public IEnumerator ScrollNotStartedTest()
+        {
 
             CommonInstall();
 
@@ -163,7 +172,8 @@ namespace Tetra4bica.Tests {
         }
 
         [UnityTest]
-        public IEnumerator PatchTest() {
+        public IEnumerator PatchTest()
+        {
 
             CommonInstall();
 
@@ -191,7 +201,8 @@ namespace Tetra4bica.Tests {
         }
 
         [UnityTest]
-        public IEnumerator ExplosionTest() {
+        public IEnumerator ExplosionTest()
+        {
 
             CommonInstall();
 
@@ -218,7 +229,8 @@ namespace Tetra4bica.Tests {
             yield return null;
         }
 
-        private void testColorTable(CellColor?[,] reqTable) {
+        private void testColorTable(CellColor?[,] reqTable)
+        {
             // Verification
             int reqWidth = reqTable.GetLength(0);
             int reqHeight = reqTable.GetLength(1);
@@ -227,9 +239,11 @@ namespace Tetra4bica.Tests {
 
             GameObject[,] callTable = getCellTable(spawnedBricks, reqWidth, reqHeight);
             Vector3 parentPos = cellsParent.transform.position;
-            float cellSize = visSettings.cellSize;
-            for (int x = 0; x < reqWidth; x++) {
-                for (int y = 0; y < reqHeight; y++) {
+            float cellSize = visSettings.CellSize;
+            for (int x = 0; x < reqWidth; x++)
+            {
+                for (int y = 0; y < reqHeight; y++)
+                {
                     verifyCell(
                         callTable[x, y], parentPos, v2i(x, y), cellSize,
                         reqTable[x, y].HasValue, cellsParent.transform,
@@ -240,7 +254,8 @@ namespace Tetra4bica.Tests {
         }
 
         private void verifyCell(GameObject cell, Vector2 shift, Vector2Int cellPos, float cellSize, bool active,
-            Transform parent, Color reqColor) {
+            Transform parent, Color reqColor)
+        {
             Vector3 pos = cell.transform.position;
             Vector2 reqPos = shift + v2(cellPos.x * cellSize, cellPos.y * cellSize);
             Assert.AreEqual(reqPos.x, pos.x, double.Epsilon);
@@ -251,21 +266,28 @@ namespace Tetra4bica.Tests {
             SpriteRenderer renderer = cell.GetComponent<SpriteRenderer>();
             Assert.IsNotNull(renderer);
             Assert.AreEqual(active, renderer.enabled);
-            if (active) {
+            if (active)
+            {
                 Assert.AreEqual(reqColor, renderer.color);
             }
         }
 
-        private GameObject[,] getCellTable(List<GameObject> spawnedBricks, int width, int height) {
+        private GameObject[,] getCellTable(List<GameObject> spawnedBricks, int width, int height)
+        {
             spawnedBricks.Sort(sortCellsXY);
             GameObject[,] res = new GameObject[width, height];
 
             List<GameObject>.Enumerator cellsEnum = spawnedBricks.GetEnumerator();
-            for (int x = 0; x < width; x++) {
-                for (int y = 0; y < height; y++) {
-                    if (cellsEnum.MoveNext()) {
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    if (cellsEnum.MoveNext())
+                    {
                         res[x, y] = cellsEnum.Current;
-                    } else {
+                    }
+                    else
+                    {
                         Assert.Fail();
                     }
 
@@ -275,16 +297,20 @@ namespace Tetra4bica.Tests {
             return res;
         }
 
-        private static int sortCellsXY(GameObject go1, GameObject go2) {
+        private static int sortCellsXY(GameObject go1, GameObject go2)
+        {
             if (go1 == go2)
                 return 0;
             if (go1 == null)
                 return -1;
             if (go2 == null)
                 return 1;
-            if (go1.transform.position.x == go2.transform.position.x) {
+            if (go1.transform.position.x == go2.transform.position.x)
+            {
                 return Math.Sign(go1.transform.position.y - go2.transform.position.y);
-            } else {
+            }
+            else
+            {
                 return Math.Sign(go1.transform.position.x - go2.transform.position.x);
             }
         }

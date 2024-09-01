@@ -1,15 +1,21 @@
-using System;
+﻿using System;
+using UnityEngine;
 using Zenject;
 
-namespace Tetra4bica.Init {
+namespace Tetra4bica.Init
+{
 
-    public class VisualSettingsInstaller : MonoInstaller {
+    public class VisualSettingsInstaller : MonoInstaller
+    {
 
-        public VisualSettings visualSettings;
+        [SerializeField]
+        private VisualSettings visualSettings;
 
-        public override void InstallBindings() {
-            if (visualSettings.cellSize <= 0) {
-                throw new ArgumentException($"{nameof(visualSettings.cellSize)} is not positive");
+        public override void InstallBindings()
+        {
+            if (visualSettings.CellSize <= 0)
+            {
+                throw new ArgumentException($"{nameof(visualSettings.CellSize)} is not positive");
             }
             Container.BindInstance(visualSettings).AsSingle();
         }

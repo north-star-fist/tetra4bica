@@ -1,10 +1,12 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using Tetra4bica.Util;
 
-namespace Tetra4bica.Core {
+namespace Tetra4bica.Core
+{
 
     /// <summary> Dictionary of tetromino patterns with their colours. </summary>
-    public class TetrominoPatterns : ICellPatterns {
+    public class TetrominoPatterns : ICellPatterns
+    {
 
         private static readonly bool[,] SQUARE = new bool[,] {
             { true, true },
@@ -53,11 +55,11 @@ namespace Tetra4bica.Core {
         /// T patterns. T, T rotated clockwise by 90 degrees, T rotated by 180 degrees
         /// and T rotated counter-clockwise by 90 degrees
         /// </summary>
-        public readonly CellFragment[] T_PATTERNS;
+        public readonly CellFragment[] TPATTERNS;
 
 
         // S
-        public readonly CellFragment[] S_PATTERNS;
+        public readonly CellFragment[] SPATTERNS;
 
 
         // Z
@@ -71,18 +73,19 @@ namespace Tetra4bica.Core {
         // Back L
         public readonly CellFragment[] MIRRORED_L_PATTERNS;
 
-        public TetrominoPatterns() {
+        public TetrominoPatterns()
+        {
             STICK_PATTERNS = new CellFragment[] {
                 CellFragment.Fragment(STICK, out var _),
                 CellFragment.Fragment( MatrixUtil.RotateBy90(STICK, true), out var _)
             };
-            T_PATTERNS = new CellFragment[] {
+            TPATTERNS = new CellFragment[] {
                 CellFragment.Fragment(T, out var _),
                 CellFragment.Fragment(MatrixUtil.RotateBy90(T, true), out var _),
                 CellFragment.Fragment(MatrixUtil.RotateBy180(T), out var _),
                 CellFragment.Fragment(MatrixUtil.RotateBy90(T, false), out var _),
             };
-            S_PATTERNS = new CellFragment[] {
+            SPATTERNS = new CellFragment[] {
                 CellFragment.Fragment(S, out var _),
                 CellFragment.Fragment( MatrixUtil.RotateBy90(S, true), out var _)
             };
@@ -104,13 +107,14 @@ namespace Tetra4bica.Core {
             };
         }
 
-        public CellFragment[] GetPatterns(CellColor color) => color switch {
+        public CellFragment[] GetPatterns(CellColor color) => color switch
+        {
             CellColor.Yellow => SQUARE_PATTERNS,
             CellColor.Red => Z_PATTERNS,
-            CellColor.Green => S_PATTERNS,
+            CellColor.Green => SPATTERNS,
             CellColor.Blue => MIRRORED_L_PATTERNS,
             CellColor.PaleBlue => STICK_PATTERNS,
-            CellColor.Magenta => T_PATTERNS,
+            CellColor.Magenta => TPATTERNS,
             CellColor.Orange => L_PATTERNS,
             _ => throw new InvalidEnumArgumentException("Unknown color!", (int)color, typeof(CellColor))
         };

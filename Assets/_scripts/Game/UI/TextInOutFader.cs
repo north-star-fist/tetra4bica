@@ -1,27 +1,36 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
-[RequireComponent(typeof(TMP_Text))]
-public class TextInOutFader : MonoBehaviour {
+namespace Tetra4bica.UI
+{
 
-    public float fadeTime = 1.0f;
+    [RequireComponent(typeof(TMP_Text))]
+    public class TextInOutFader : MonoBehaviour
+    {
 
-    TMP_Text text;
+        [SerializeField]
+        private float fadeTime = 1.0f;
 
-    Tween tween;
+        TMP_Text text;
 
-    // Start is called before the first frame update
-    void Start() {
-        text = GetComponent<TMP_Text>();
-        tween = DOTween.To(() => text.alpha, a => text.alpha = a, 0, fadeTime).SetEase(Ease.InOutCirc);
-        tween.SetLoops(-1, LoopType.Yoyo);
-        tween.Play();
-    }
+        Tween tween;
 
-    private void OnDisable() {
-        if (tween != null) {
-            tween.Kill();
+        // Start is called before the first frame update
+        void Start()
+        {
+            text = GetComponent<TMP_Text>();
+            tween = DOTween.To(() => text.alpha, a => text.alpha = a, 0, fadeTime).SetEase(Ease.InOutCirc);
+            tween.SetLoops(-1, LoopType.Yoyo);
+            tween.Play();
+        }
+
+        private void OnDisable()
+        {
+            if (tween != null)
+            {
+                tween.Kill();
+            }
         }
     }
 }

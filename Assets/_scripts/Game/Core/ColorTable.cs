@@ -1,20 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 using static Sergei.Safonov.Utility.VectorExt;
 
-namespace Tetra4bica.Core {
+namespace Tetra4bica.Core
+{
 
     /// <summary> Mutable color cell table. </summary>
-    public class ColorTable : IEquatable<ColorTable> {
+    public class ColorTable : IEquatable<ColorTable>
+    {
+        public Vector2Int Size => size;
+
 
         CellColor?[,] cellsTable;
 
-        private Vector2Int _size;
-
-        public Vector2Int size => _size;
+        private Vector2Int size;
 
         /// <summary>
         /// Index of the first column in the cells table. This index is incremented on table scrolls left 
@@ -25,13 +27,16 @@ namespace Tetra4bica.Core {
         // Array for tempopary storing neighbour cells during calculations.
         Cell[] neighbourCellsArray = new Cell[Direction.FOUR_DIRECTIONS.Length];
 
-        public ColorTable(Vector2Int size) {
-            _size = size;
+        public ColorTable(Vector2Int size)
+        {
+            this.size = size;
             cellsTable = new CellColor?[size.x, size.y];
         }
 
-        public ColorTable(Vector2Int size, IEnumerable<Cell> cells) : this(size) {
-            foreach (var cell in cells) {
+        public ColorTable(Vector2Int size, IEnumerable<Cell> cells) : this(size)
+        {
+            foreach (var cell in cells)
+            {
                 this[cell.Position] = cell.Color;
             }
         }
@@ -39,32 +44,40 @@ namespace Tetra4bica.Core {
         public ColorTable(ushort width, ushort height) : this(v2i(width, height)) { }
 
         // Defines the x,y indexer, which will allow colored cells
-        public CellColor? this[int x, int y] {
-            get {
+        public CellColor? this[int x, int y]
+        {
+            get
+            {
                 return getColor(v2i(x, y));
             }
-            set {
+            set
+            {
                 SetCell(new Vector2Int(x, y), value);
             }
         }
 
         // Defines the Vector2 indexer, which will allow colored cells
-        public CellColor? this[Vector2Int position] {
-            get {
+        public CellColor? this[Vector2Int position]
+        {
+            get
+            {
                 return getColor(position);
             }
-            set {
+            set
+            {
                 SetCell(position, value);
             }
         }
 
-        public void SetCell(Vector2Int pos, CellColor? color) {
+        public void SetCell(Vector2Int pos, CellColor? color)
+        {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
             cellsTable[shiftedPos.x, shiftedPos.y] = color;
         }
 
-        public void RemoveCell(Vector2Int pos) {
+        public void RemoveCell(Vector2Int pos)
+        {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
             cellsTable[shiftedPos.x, shiftedPos.y] = null;
@@ -78,12 +91,16 @@ namespace Tetra4bica.Core {
             Vector2Int includeCell,
             Vector2Int[] matchedCellsBuffer,
             out CellColor? patternColor
-        ) {
+        )
+        {
             uint neighbourCellsCount = 0;
-            foreach (Vector2Int dir in Direction.FOUR_DIRECTIONS) {
-                if (!IsOutOfMapBounds(includeCell + dir)) {
+            foreach (Vector2Int dir in Direction.FOUR_DIRECTIONS)
+            {
+                if (!IsOutOfMapBounds(includeCell + dir))
+                {
                     CellColor? col = this[includeCell + dir];
-                    if (col.HasValue) {
+                    if (col.HasValue)
+                    {
                         neighbourCellsArray[neighbourCellsCount++] = new Cell(includeCell + dir, col.Value);
                     }
                 }
@@ -109,27 +126,35 @@ namespace Tetra4bica.Core {
             Cell[] neighbourCellsArray,
             uint neighboursCount,
             out CellColor? patternColor
-        ) {
+        )
+        {
             patternColor = null;
-            if (neighboursCount == 0) {
+            if (neighboursCount == 0)
+            {
                 return 0;
             }
 
             CellColor? cellColor = getColor(includeCell);
-            if (!cellColor.HasValue) {
-                for (int i = 0; i < neighboursCount; i++) {
+            if (!cellColor.HasValue)
+            {
+                for (int i = 0; i < neighboursCount; i++)
+                {
                     Cell neighbour = neighbourCellsArray[i];
                     var matchedCount = FindPattern(
                         patternsBank[neighbour.Color], neighbour.Color, includeCell, matchedCellsBuffer
                     );
-                    if (matchedCount > 0) {
+                    if (matchedCount > 0)
+                    {
                         patternColor = neighbour.Color;
                         return matchedCount;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 var matchedCount = FindPattern(patternsBank[cellColor.Value], cellColor.Value, includeCell, matchedCellsBuffer);
-                if (matchedCount > 0) {
+                if (matchedCount > 0)
+                {
                     patternColor = cellColor.Value;
                 }
                 return matchedCount;
@@ -142,18 +167,23 @@ namespace Tetra4bica.Core {
             CellColor color,
             Vector2Int withCellPos,
             Vector2Int[] outMatchedCells
-        ) {
+        )
+        {
             int i = 0;
-            foreach (var pattern in patterns) {
+            foreach (var pattern in patterns)
+            {
                 int patternWidth = pattern.Size.x;
                 int patternHeight = pattern.Size.y;
 
                 Util.RectInt searchRect = getCellAroundSearchBounds(pattern, withCellPos);
 
-                for (int shiftXLocal = searchRect.MinX; shiftXLocal <= searchRect.MaxX - patternWidth; shiftXLocal++) {
-                    for (int shiftYLocal = searchRect.MinY; shiftYLocal <= searchRect.MaxY - patternHeight; shiftYLocal++) {
+                for (int shiftXLocal = searchRect.MinX; shiftXLocal <= searchRect.MaxX - patternWidth; shiftXLocal++)
+                {
+                    for (int shiftYLocal = searchRect.MinY; shiftYLocal <= searchRect.MaxY - patternHeight; shiftYLocal++)
+                    {
                         uint matchedCellsCount = checkForMatch(pattern, shiftXLocal, shiftYLocal, color, outMatchedCells, withCellPos);
-                        if (matchedCellsCount == pattern.Count()) {
+                        if (matchedCellsCount == pattern.Count())
+                        {
                             return matchedCellsCount;
                         }
                     }
@@ -163,68 +193,82 @@ namespace Tetra4bica.Core {
             return 0;
         }
 
-        private Util.RectInt getCellAroundSearchBounds(CellFragment pattern, Vector2Int withCellPosLocal) {
+        private Util.RectInt getCellAroundSearchBounds(CellFragment pattern, Vector2Int withCellPosLocal)
+        {
             int patternWidth = pattern.Size.x;
             int patternHeight = pattern.Size.y;
             int xMin = Math.Max(0, withCellPosLocal.x - patternWidth);
-            int xMax = Math.Min(size.x, withCellPosLocal.x + patternWidth);
+            int xMax = Math.Min(Size.x, withCellPosLocal.x + patternWidth);
             int yMin = Math.Max(0, withCellPosLocal.y - patternHeight);
-            int yMax = Math.Min(size.y, withCellPosLocal.y + patternHeight);
+            int yMax = Math.Min(Size.y, withCellPosLocal.y + patternHeight);
             return new Util.RectInt(v2i(xMin, yMin), v2i(xMax - xMin, yMax - yMin));
         }
 
         private uint checkForMatch(CellFragment pattern, int shiftX, int shiftY, CellColor color,
-            Vector2Int[] outMatchedCellsLocal, Vector2Int includeCell) {
+            Vector2Int[] outMatchedCellsLocal, Vector2Int includeCell)
+        {
             Vector2Int shift = v2i(shiftX, shiftY);
             uint matched = 0;
-            foreach (var patternCell in pattern) {
+            foreach (var patternCell in pattern)
+            {
                 Vector2Int cell = shift + patternCell;
-                if (getColor(cell) == color || cell == includeCell) {
+                if (getColor(cell) == color || cell == includeCell)
+                {
                     outMatchedCellsLocal[matched++] = cell;
-                } else {
+                }
+                else
+                {
                     return 0;
                 }
             }
             return matched;
         }
 
-        public void ScrollLeft(IEnumerable<CellColor?> newWallCells) {
+        public void ScrollLeft(IEnumerable<CellColor?> newWallCells)
+        {
             // Shift cells
             scrollMapLeft();
             // Add new wall
             spawnNewWall();
             //Debug.Log(this);
 
-            void spawnNewWall() {
-                int lastColumnX = size.x - 1;
+            void spawnNewWall()
+            {
+                int lastColumnX = Size.x - 1;
                 int y = 0;
-                foreach (CellColor? cellColor in newWallCells) {
+                foreach (CellColor? cellColor in newWallCells)
+                {
                     SetCell(v2i(lastColumnX, y++), cellColor);
                 }
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsOutOfHorizontalMapBounds(float x) => x < 0 || x >= size.x;
+        public bool IsOutOfHorizontalMapBounds(float x) => x < 0 || x >= Size.x;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsOutOfVerticalMapBounds(float y) => y < 0 || y >= size.y;
+        public bool IsOutOfVerticalMapBounds(float y) => y < 0 || y >= Size.y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsOutOfMapBounds(Vector2 position)
             => IsOutOfHorizontalMapBounds(position.x) || IsOutOfVerticalMapBounds(position.y);
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             return Equals(obj as ColorTable);
         }
 
-        public bool Equals(ColorTable other) {
-            if (other is null || !_size.Equals(other._size)) {
+        public bool Equals(ColorTable other)
+        {
+            if (other is null || !size.Equals(other.size))
+            {
                 return false;
             }
 
-            for (int x = 0; x < size.x; x++) {
-                for (int y = 0; y < size.y; y++) {
+            for (int x = 0; x < Size.x; x++)
+            {
+                for (int y = 0; y < Size.y; y++)
+                {
                     if (this[x, y] != other[x, y])
                         return false;
                 }
@@ -232,20 +276,25 @@ namespace Tetra4bica.Core {
             return true;
         }
 
-        public static bool operator ==(ColorTable left, ColorTable right) {
+        public static bool operator ==(ColorTable left, ColorTable right)
+        {
             return EqualityComparer<ColorTable>.Default.Equals(left, right);
         }
 
-        public static bool operator !=(ColorTable left, ColorTable right) {
+        public static bool operator !=(ColorTable left, ColorTable right)
+        {
             return !(left == right);
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             StringBuilder sb = new StringBuilder();
             sb.Append("[ColorTable]");
-            for (int y = size.y - 1; y >= 0; y--) {
+            for (int y = Size.y - 1; y >= 0; y--)
+            {
                 sb.Append("\n|");
-                for (int x = 0; x < size.x; x++) {
+                for (int x = 0; x < Size.x; x++)
+                {
                     sb.Append(colorToCharacter(this[x, y]));
                 }
                 sb.Append("|");
@@ -254,22 +303,28 @@ namespace Tetra4bica.Core {
         }
 
         /// <summary> Shifts all table cells to the left. </summary>
-        private void scrollMapLeft() {
+        private void scrollMapLeft()
+        {
             // Moving all cells left by 1 cell.
             startingX++;
-            if (startingX >= size.x) {
+            if (startingX >= Size.x)
+            {
                 startingX = 0;
             }
         }
 
-        private CellColor? getColor(Vector2Int cell) {
+        private CellColor? getColor(Vector2Int cell)
+        {
             Vector2Int shiftedPosition = shiftPosition(cell);
             return cellsTable[shiftedPosition.x, shiftedPosition.y];
         }
 
-        private char colorToCharacter(CellColor? cellColor) {
-            if (cellColor.HasValue) {
-                return cellColor.Value switch {
+        private char colorToCharacter(CellColor? cellColor)
+        {
+            if (cellColor.HasValue)
+            {
+                return cellColor.Value switch
+                {
                     CellColor.Magenta => 'M',
                     CellColor.Blue => 'B',
                     CellColor.PaleBlue => 'b',
@@ -279,21 +334,26 @@ namespace Tetra4bica.Core {
                     CellColor.Yellow => 'Y',
                     _ => throw new ArgumentException($"Unknown cell color: {nameof(cellColor)}")
                 };
-            } else {
+            }
+            else
+            {
                 return ' ';
             }
         }
 
-        private Vector2Int shiftPosition(Vector2Int position) {
-            int shiftedX = (position.x + startingX) % size.x;
+        private Vector2Int shiftPosition(Vector2Int position)
+        {
+            int shiftedX = (position.x + startingX) % Size.x;
             Vector2Int shiftedPosition = v2i(shiftedX, position.y);
             return shiftedPosition;
         }
 
-        private void verifyCellPosition(Vector2Int pos) {
-            if (IsOutOfMapBounds(pos)) {
+        private void verifyCellPosition(Vector2Int pos)
+        {
+            if (IsOutOfMapBounds(pos))
+            {
                 throw new IndexOutOfRangeException(
-                    $"Specified cell position {pos.ToString()} is out of the map bounds {size.ToString()}!"
+                    $"Specified cell position {pos.ToString()} is out of the map bounds {Size.ToString()}!"
                 );
             }
         }

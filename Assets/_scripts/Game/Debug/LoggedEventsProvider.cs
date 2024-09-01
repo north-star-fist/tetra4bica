@@ -1,139 +1,172 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 
-public class LoggedEventsProvider : CustomGameInputEventsProviderComponent {
+namespace Tetra4bica.Debugging
+{
 
-    [Tooltip("Relative path to file in persistent storage")]
-    public string logFilePath;
+    public class LoggedEventsProvider : CustomGameInputEventsProviderComponent
+    {
 
-    override public IObservable<IGameInputEvent> GetInputStream() => _input;
+        [SerializeField, Tooltip("Relative path to file in persistent storage")]
+        private string logFilePath;
 
-    const string ON = "On";
-    const string OFF = "Off";
+        override public IObservable<IGameInputEvent> GetInputStream() => input;
 
-    readonly IFormatter formatter = new BinaryFormatter();
+        const string ON = "On";
+        const string OFF = "Off";
 
-    ISubject<IGameInputEvent> _input = new Subject<IGameInputEvent>();
+        readonly IFormatter formatter = new BinaryFormatter();
 
-    IList<IGameInputEvent> gameEventList = new List<IGameInputEvent>();
+        readonly ISubject<IGameInputEvent> input = new Subject<IGameInputEvent>();
 
-    uint frameNumber;
-    int totalFrameNumber;
+        readonly IList<IGameInputEvent> gameEventList = new List<IGameInputEvent>();
 
-    int eventIndex;
-    float actualTime;
-    float loggedTime;
+        uint frameNumber;
+        int totalFrameNumber;
 
-    bool autoplay;
+        int eventIndex;
+        float actualTime;
+        float loggedTime;
 
-    bool error;
+        bool autoplay;
 
-    private string goToFrameText;
+        bool error;
 
-    private void Awake() {
-        if (string.IsNullOrEmpty(logFilePath)) {
-            Debug.LogWarning("Event log file path is undefined!");
-            return;
-        }
-        using (FileStream logFileStream = new FileStream(
-            Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
-            FileMode.Open
-        )) {
-            try {
-                IGameInputEvent inputEvent = null;
-                do {
-                    var e = formatter.Deserialize(logFileStream);
-                    inputEvent = (IGameInputEvent)e;
-                    gameEventList.Add(inputEvent);
-                    if (inputEvent is FrameUpdateEvent) {
-                        totalFrameNumber++;
-                    }
-                } while (logFileStream.Position < logFileStream.Length);
-            } catch {
-                error = true;
+        private string goToFrameText;
+
+        private void Awake()
+        {
+            if (string.IsNullOrEmpty(logFilePath))
+            {
+                Debug.LogWarning("Event log file path is undefined!");
+                return;
             }
-        }
-    }
-
-    void OnGUI() {
-
-        GUI.Label(new Rect(10, 10, 150, 50), $"Frame {frameNumber.ToString()}");
-
-        if (error) {
-            return;
-        }
-
-        if (GUI.Button(new Rect(10, 70, 110, 50), "Frame ->")) {
-            readFrameEvents();
-        }
-        if (GUI.Button(new Rect(10, 130, 110, 50), "10 Frames =>")) {
-            goFurther(10);
-        }
-        if (GUI.Button(new Rect(10, 190, 110, 50), "100 Frames ==>")) {
-            goFurther(100);
-        }
-
-        goToFrameText = GUI.TextField(new Rect(10, 250, 110, 50), goToFrameText);
-        if (GUI.Button(new Rect(120, 250, 50, 50), "==>>")) {
-            if (uint.TryParse(goToFrameText, out var goToFrame)) {
-                if (goToFrame > frameNumber) {
-                    goFurther(goToFrame - frameNumber);
+            using (FileStream logFileStream = new FileStream(
+                Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+                FileMode.Open
+            ))
+            {
+                try
+                {
+                    IGameInputEvent inputEvent = null;
+                    do
+                    {
+                        var e = formatter.Deserialize(logFileStream);
+                        inputEvent = (IGameInputEvent)e;
+                        gameEventList.Add(inputEvent);
+                        if (inputEvent is FrameUpdateEvent)
+                        {
+                            totalFrameNumber++;
+                        }
+                    } while (logFileStream.Position < logFileStream.Length);
+                } catch
+                {
+                    error = true;
                 }
             }
         }
 
-        var onOff = autoplay ? ON : OFF;
-        if (GUI.Button(new Rect(10, 310, 150, 50), $"Autoplay is {onOff}")) {
-            autoplay = !autoplay;
-        }
-    }
+        void OnGUI()
+        {
 
+            GUI.Label(new Rect(10, 10, 150, 50), $"Frame {frameNumber.ToString()}");
 
-    void Update() {
-        if (error) {
-            return;
-        }
-        if (frameNumber >= totalFrameNumber || !autoplay) {
-            return;
-        }
-        actualTime += Time.deltaTime;
-        while (loggedTime < actualTime && frameNumber < totalFrameNumber) {
-            loggedTime += readFrameEvents();
-        }
-    }
-
-
-
-    private float readFrameEvents() {
-        if (frameNumber >= totalFrameNumber || eventIndex >= gameEventList.Count) {
-            return 0;
-        }
-        float delta = 0;
-        IGameInputEvent inputEvent = null;
-        FrameUpdateEvent frameEvent = null;
-        do {
-            var e = gameEventList[eventIndex];
-            inputEvent = (IGameInputEvent)e;
-            _input.OnNext(inputEvent);
-            frameEvent = inputEvent as FrameUpdateEvent;
-            eventIndex++;
-        } while (frameEvent == null && eventIndex < gameEventList.Count);
-        if (frameEvent != null) {
-            delta = frameEvent.deltaTime;
-            frameNumber++;
-        }
-        return delta;
-    }
-
-    private void goFurther(uint framesDelta) {
-        for (int i = 0; i < framesDelta; i++) {
-            if (readFrameEvents() == 0) {
+            if (error)
+            {
                 return;
+            }
+
+            if (GUI.Button(new Rect(10, 70, 110, 50), "Frame ->"))
+            {
+                readFrameEvents();
+            }
+            if (GUI.Button(new Rect(10, 130, 110, 50), "10 Frames =>"))
+            {
+                goFurther(10);
+            }
+            if (GUI.Button(new Rect(10, 190, 110, 50), "100 Frames ==>"))
+            {
+                goFurther(100);
+            }
+
+            goToFrameText = GUI.TextField(new Rect(10, 250, 110, 50), goToFrameText);
+            if (GUI.Button(new Rect(120, 250, 50, 50), "==>>"))
+            {
+                if (uint.TryParse(goToFrameText, out var goToFrame))
+                {
+                    if (goToFrame > frameNumber)
+                    {
+                        goFurther(goToFrame - frameNumber);
+                    }
+                }
+            }
+
+            var onOff = autoplay ? ON : OFF;
+            if (GUI.Button(new Rect(10, 310, 150, 50), $"Autoplay is {onOff}"))
+            {
+                autoplay = !autoplay;
+            }
+        }
+
+
+        void Update()
+        {
+            if (error)
+            {
+                return;
+            }
+            if (frameNumber >= totalFrameNumber || !autoplay)
+            {
+                return;
+            }
+            actualTime += Time.deltaTime;
+            while (loggedTime < actualTime && frameNumber < totalFrameNumber)
+            {
+                loggedTime += readFrameEvents();
+            }
+        }
+
+
+
+        private float readFrameEvents()
+        {
+            if (frameNumber >= totalFrameNumber || eventIndex >= gameEventList.Count)
+            {
+                return 0;
+            }
+            float delta = 0;
+            IGameInputEvent inputEvent = null;
+            FrameUpdateEvent frameEvent = null;
+            do
+            {
+                var e = gameEventList[eventIndex];
+                inputEvent = (IGameInputEvent)e;
+                input.OnNext(inputEvent);
+                frameEvent = inputEvent as FrameUpdateEvent;
+                eventIndex++;
+            } while (frameEvent == null && eventIndex < gameEventList.Count);
+            if (frameEvent != null)
+            {
+                delta = frameEvent.DeltaTime;
+                frameNumber++;
+            }
+            return delta;
+        }
+
+        private void goFurther(uint framesDelta)
+        {
+            for (int i = 0; i < framesDelta; i++)
+            {
+                if (readFrameEvents() == 0)
+                {
+                    return;
+                }
             }
         }
     }

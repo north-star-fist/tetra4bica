@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -7,45 +7,58 @@ using UniRx;
 using UnityEngine;
 using Zenject;
 
-public class ScrollColumnLogger : MonoBehaviour {
+namespace Tetra4bica.Debugging
+{
 
-    [Tooltip("Relative path to file in persistent storage")]
-    public string logFilePath;
+    public class ScrollColumnLogger : MonoBehaviour
+    {
 
-    [Inject]
-    IGameEvents gameEvents;
+        [SerializeField, Tooltip("Relative path to file in persistent storage")]
+        private string logFilePath;
 
-    FileStream logFileStream;
-    readonly IFormatter formatter = new BinaryFormatter();
+        [Inject]
+        IGameEvents gameEvents;
 
-    private void Awake() {
-        if (string.IsNullOrEmpty(logFilePath)) {
-            Debug.LogWarning("Event log file path is undefined!");
-            return;
+        FileStream logFileStream;
+        readonly IFormatter formatter = new BinaryFormatter();
+
+        private void Awake()
+        {
+            if (string.IsNullOrEmpty(logFilePath))
+            {
+                Debug.LogWarning("Event log file path is undefined!");
+                return;
+            }
+
+            logFileStream = new FileStream(
+                Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+                FileMode.Create
+            );
+            gameEvents.TableScrollStream.Subscribe(wall => logWall(wall));
         }
 
-        logFileStream = new FileStream(
-            Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
-            FileMode.Create
-        );
-        gameEvents.TableScrollStream.Subscribe(wall => logWall(wall));
-    }
-
-    void logWall(IEnumerable<CellColor?> wall) {
-        if (logFileStream != null) {
-            formatter.Serialize(logFileStream, wall);
+        void logWall(IEnumerable<CellColor?> wall)
+        {
+            if (logFileStream != null)
+            {
+                formatter.Serialize(logFileStream, wall);
+            }
         }
-    }
 
-    private void OnDestroy() {
-        if (logFileStream != null) {
-            logFileStream.Close();
+        private void OnDestroy()
+        {
+            if (logFileStream != null)
+            {
+                logFileStream.Close();
+            }
         }
-    }
 
-    ~ScrollColumnLogger() {
-        if (logFileStream != null) {
-            logFileStream.Close();
+        ~ScrollColumnLogger()
+        {
+            if (logFileStream != null)
+            {
+                logFileStream.Close();
+            }
         }
     }
 }

@@ -1,13 +1,15 @@
-using Sergei.Safonov.Audio;
+﻿using Sergei.Safonov.Audio;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using Zenject;
 
-namespace Tetra4bica.Sound {
+namespace Tetra4bica.Sound
+{
 
-    public class ColorTableSfx : MonoBehaviour {
+    public class ColorTableSfx : MonoBehaviour
+    {
 
         [Inject]
         IGameEvents gameLogic;
@@ -15,10 +17,12 @@ namespace Tetra4bica.Sound {
         [Inject(Id = AudioSourceId.SoundEffects)]
         AudioSource audioSource;
 
-        public AudioResource wallDestructionSfx;
+        [SerializeField]
+        private AudioResource wallDestructionSfx;
 
 
-        private void Awake() {
+        private void Awake()
+        {
             gameLogic.EliminatedBricksStream.Subscribe(
                 _ => SoundUtils.PlaySound(audioSource, wallDestructionSfx)
             );

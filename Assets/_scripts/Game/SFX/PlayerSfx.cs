@@ -1,27 +1,33 @@
+﻿using System;
 using Sergei.Safonov.Audio;
-using System;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using Zenject;
 
-namespace Tetra4bica.Sound {
+namespace Tetra4bica.Sound
+{
 
-    public class PlayerSfx : MonoBehaviour {
+    public class PlayerSfx : MonoBehaviour
+    {
 
         [Inject]
-        IGameEvents gameLogic;
+        private IGameEvents gameLogic;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource playerAudioSource;
+        private AudioSource playerAudioSource;
 
-        public AudioResource playerDeathSfx;
-        public AudioResource playerShotSfx;
-        public AudioResource playerRotateSfx;
+        [SerializeField]
+        private AudioResource playerDeathSfx;
+        [SerializeField]
+        private AudioResource playerShotSfx;
+        [SerializeField]
+        private AudioResource playerRotateSfx;
 
 
-        private void Awake() {
+        private void Awake()
+        {
             Setup(
                 gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default),
                 gameLogic.ShotStream,
@@ -32,7 +38,8 @@ namespace Tetra4bica.Sound {
         void Setup(
             IObservable<Unit> gameOverStream,
             IObservable<Vector2Int> playerShotStream,
-            IObservable<bool> rotationStream) {
+            IObservable<bool> rotationStream)
+        {
             gameOverStream.Subscribe(
                 _ => SoundUtils.PlaySound(playerAudioSource, playerDeathSfx)
             );

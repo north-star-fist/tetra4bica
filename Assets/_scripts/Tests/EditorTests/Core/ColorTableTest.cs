@@ -1,18 +1,20 @@
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using NUnit.Framework;
 using Tetra4bica.Core;
 using Tetra4bica.Util;
 using UnityEngine;
 using static Sergei.Safonov.Utility.VectorExt;
 
-public class ColorTableTest {
+public class ColorTableTest
+{
 
 
     Vector2Int[] matchedCellsBuffer = new Vector2Int[16];
 
     [Test]
-    public void TestEqualsEmpty() {
+    public void TestEqualsEmpty()
+    {
         // Use the Assert class to test conditions
         ColorTable table1 = new ColorTable(3, 3);
         ColorTable table2 = new ColorTable(3, 3);
@@ -20,7 +22,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestEqualsNonEmpty() {
+    public void TestEqualsNonEmpty()
+    {
         // Use the Assert class to test conditions
         ColorTable table1 = new ColorTable(3, 3);
         table1.SetCell(v2i(0, 1), CellColor.Yellow);
@@ -32,7 +35,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestSetCellGetCell() {
+    public void TestSetCellGetCell()
+    {
         ColorTable table1 = new ColorTable(3, 3);
         table1.SetCell(v2i(1, 1), CellColor.Blue);
         table1[2, 0] = CellColor.Green;
@@ -42,7 +46,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestRemoveCell() {
+    public void TestRemoveCell()
+    {
         ColorTable table1 = new ColorTable(3, 3);
         table1[1, 0] = CellColor.Blue;
         table1.SetCell(v2i(1, 1), CellColor.Blue);
@@ -62,14 +67,16 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestSetCellGetCellOutOfBoundsException() {
+    public void TestSetCellGetCellOutOfBoundsException()
+    {
         ColorTable table1 = new ColorTable(3, 3);
         Assert.That(() => table1[3, 3] = CellColor.Green, Throws.TypeOf<IndexOutOfRangeException>());
     }
 
     // A Test behaves as an ordinary method
     [Test]
-    public void TestFindYellowPatternRectExactSize() {
+    public void TestFindYellowPatternRectExactSize()
+    {
         // Use the Assert class to test conditions
         ColorTable table1 = new ColorTable(3, 3);
         table1.SetCell(Vector2Int.zero, CellColor.Yellow);
@@ -81,7 +88,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindYellowPatternRectLargeRegion() {
+    public void TestFindYellowPatternRectLargeRegion()
+    {
         ColorTable table1 = new ColorTable(3, 3);
         table1.SetCell(Vector2Int.zero, CellColor.Yellow);
         table1.SetCell(Vector2Int.right, CellColor.Yellow);
@@ -94,7 +102,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindYellowPatternRectLargeRegionGotFromTableItself() {
+    public void TestFindYellowPatternRectLargeRegionGotFromTableItself()
+    {
         ColorTable table1 = new ColorTable(3, 3);
         table1.SetCell(Vector2Int.zero, CellColor.Yellow);
         table1.SetCell(Vector2Int.right, CellColor.Yellow);
@@ -108,7 +117,8 @@ public class ColorTableTest {
 
 
     [Test]
-    public void TestFindPaleBluePatternStickHorizontalRegionGotFromTableItself() {
+    public void TestFindPaleBluePatternStickHorizontalRegionGotFromTableItself()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(Vector2Int.zero, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right, CellColor.PaleBlue);
@@ -120,7 +130,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindPaleBluePatternStickVerticalRegionGotFromTableItself() {
+    public void TestFindPaleBluePatternStickVerticalRegionGotFromTableItself()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(Vector2Int.zero, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up, CellColor.PaleBlue);
@@ -132,7 +143,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindMagentaTPatterStraight() {
+    public void TestFindMagentaTPatterStraight()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
@@ -144,7 +156,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindMagentaTPatterWithNoTOnTable() {
+    public void TestFindMagentaTPatterWithNoTOnTable()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
@@ -156,7 +169,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindMagentaTPatter90Clockwise() {
+    public void TestFindMagentaTPatter90Clockwise()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
@@ -168,7 +182,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindMagentaTPatter90CounterClockwise() {
+    public void TestFindMagentaTPatter90CounterClockwise()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
@@ -180,7 +195,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindMagentaTPatter180() {
+    public void TestFindMagentaTPatter180()
+    {
         ColorTable table1 = new ColorTable(5, 5);
         table1.SetCell(v2i(0, 0), CellColor.Magenta);
         table1.SetCell(v2i(1, 1), CellColor.Magenta);
@@ -193,7 +209,8 @@ public class ColorTableTest {
 
 
     [Test]
-    public void TestFindOrangeLPatternWithNoLOnTable() {
+    public void TestFindOrangeLPatternWithNoLOnTable()
+    {
         var shift = v2i(2, 3);
         ColorTable table1 = new ColorTable(10, 10);
         table1.SetCell(v2i(0, 1), CellColor.Orange);
@@ -211,7 +228,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindOrangeLPatternCounterClockwise90() {
+    public void TestFindOrangeLPatternCounterClockwise90()
+    {
         var shift = v2i(2, 3);
         ColorTable table1 = new ColorTable(10, 10);
         table1.SetCell(v2i(0, 1) + shift, CellColor.Orange);
@@ -224,7 +242,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestFindOrangeLPatternClockwise90() {
+    public void TestFindOrangeLPatternClockwise90()
+    {
         var shift = v2i(2, 3);
         ColorTable table1 = new ColorTable(10, 10);
         table1.SetCell(v2i(0, 1) + shift, CellColor.Orange);
@@ -233,18 +252,19 @@ public class ColorTableTest {
         table1.SetCell(v2i(0, 0) + shift, CellColor.Orange);
 
         TestPatterns patterns = new TestPatterns();
-        var L = new bool[,] {
+        var l = new bool[,] {
             { true, true, true },
             { true, false, false }
         };
-        patterns.Add(CellColor.Orange, MatrixUtil.RotateBy90(L, true));
+        patterns.Add(CellColor.Orange, MatrixUtil.RotateBy90(l, true));
         Assert.AreEqual(4, table1.FindPattern(patterns, v2i(0, 1) + shift, matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Orange, pCol);
     }
 
 
     [Test]
-    public void TestScrollWithNoWall() {
+    public void TestScrollWithNoWall()
+    {
         ColorTable table1 = new ColorTable(2, 2);
         table1.SetCell(v2i(0, 0), CellColor.Red);
         table1.SetCell(v2i(1, 1), CellColor.Orange);
@@ -258,7 +278,8 @@ public class ColorTableTest {
 
 
     [Test]
-    public void TestScrollRainbowWithNoWall() {
+    public void TestScrollRainbowWithNoWall()
+    {
         ColorTable table1 = new ColorTable(7, 7);
         table1.SetCell(v2i(0, 0), CellColor.Red);
         table1.SetCell(v2i(1, 1), CellColor.Orange);
@@ -287,7 +308,8 @@ public class ColorTableTest {
     }
 
     [Test]
-    public void TestScrollRainbowWithNewWall() {
+    public void TestScrollRainbowWithNewWall()
+    {
         ColorTable table1 = new ColorTable(7, 7);
         table1.SetCell(v2i(0, 0), CellColor.Red);
         table1.SetCell(v2i(1, 1), CellColor.Orange);
@@ -323,21 +345,25 @@ public class ColorTableTest {
     }
 
 
-    class TestPatterns : ICellPatterns {
+    class TestPatterns : ICellPatterns
+    {
 
         Dictionary<CellColor, bool[,]> patternMap = new Dictionary<CellColor, bool[,]>();
 
         public TestPatterns() { }
 
-        public void Add(CellColor color, bool[,] pattern) {
+        public void Add(CellColor color, bool[,] pattern)
+        {
             patternMap[color] = pattern;
         }
 
-        public IEnumerable<bool[,]> GetPatterns(CellColor color) {
+        public IEnumerable<bool[,]> GetPatterns(CellColor color)
+        {
             return new[] { patternMap[color] };
         }
 
-        CellFragment[] ICellPatterns.GetPatterns(CellColor color) {
+        CellFragment[] ICellPatterns.GetPatterns(CellColor color)
+        {
             return new CellFragment[] { CellFragment.Fragment(patternMap[color], out var _) };
         }
     }

@@ -1,18 +1,21 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Tetra4bica.Core {
+namespace Tetra4bica.Core
+{
 
     /// <summary> Mutable struct keeping coordinates and velocity of a projectile. </summary>
-    public struct Projectile {
+    public struct Projectile
+    {
 
-        public bool active;
-        public Vector2 position;
-        public Vector2Int direction;
+        public bool Active;
+        public Vector2 Position;
+        public Vector2Int Direction;
 
-        public Projectile(Vector2 position, Vector2Int direction) {
-            this.active = true;
-            this.position = position;
-            this.direction = direction;
+        public Projectile(Vector2 position, Vector2Int direction)
+        {
+            this.Active = true;
+            this.Position = position;
+            this.Direction = direction;
         }
     }
 }

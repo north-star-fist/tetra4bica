@@ -1,24 +1,34 @@
-using System;
+﻿using System;
 using UnityEngine;
 using Zenject;
 
-namespace Tetra4bica.Init {
+namespace Tetra4bica.Init
+{
 
-    public class AudioSourcesInstaller : MonoInstaller {
-
-        public GroupPrefab[] audioSourcePrefabs;
+    public class AudioSourcesInstaller : MonoInstaller
+    {
+        [SerializeField]
+        private GroupPrefab[] audioSourcePrefabs;
 
         [Serializable]
-        public class GroupPrefab {
-            public AudioSourceId audioGroup;
-            public GameObject audioSourcePrefab;
+        public class GroupPrefab
+        {
+            public AudioSourceId AudioGroup => audioGroup;
+            public GameObject AudioSourcePrefab => audioSourcePrefab;
+
+            [SerializeField]
+            private AudioSourceId audioGroup;
+            [SerializeField]
+            private GameObject audioSourcePrefab;
         }
 
-        public override void InstallBindings() {
+        public override void InstallBindings()
+        {
 
-            foreach (var groupPrefab in audioSourcePrefabs) {
-                Container.Bind<AudioSource>().WithId(groupPrefab.audioGroup)
-                    .FromComponentInNewPrefab(groupPrefab.audioSourcePrefab).AsTransient().NonLazy();
+            foreach (var groupPrefab in audioSourcePrefabs)
+            {
+                Container.Bind<AudioSource>().WithId(groupPrefab.AudioGroup)
+                    .FromComponentInNewPrefab(groupPrefab.AudioSourcePrefab).AsTransient().NonLazy();
             }
 
         }

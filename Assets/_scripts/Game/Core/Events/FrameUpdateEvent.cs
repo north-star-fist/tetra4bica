@@ -1,14 +1,16 @@
-using System;
+﻿using System;
 
 [Serializable]
-public class FrameUpdateEvent : IGameInputEvent {
+public class FrameUpdateEvent : IGameInputEvent
+{
 
-    readonly public float deltaTime;
+    readonly public float DeltaTime;
 
-    public FrameUpdateEvent(float deltaTime) {
-        this.deltaTime = deltaTime;
+    public FrameUpdateEvent(float deltaTime)
+    {
+        this.DeltaTime = deltaTime;
     }
 
     public void Apply(IGameTimeBus timeEventsBus, IGameInputBus _)
-        => timeEventsBus.FrameUpdatePublisher.OnNext(deltaTime);
+        => timeEventsBus.FrameUpdatePublisher.OnNext(DeltaTime);
 }

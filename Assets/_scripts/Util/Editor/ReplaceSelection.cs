@@ -4,13 +4,14 @@
  * Original coding by 'yesfish', nabbed from Unity Forums
  * 'keep parent' added by Dave A (also removed 'rotation' option, using localRotation)
  */
-using UnityEngine;
-using UnityEditor;
 using System.Collections.Generic;
 using Sergey.Safonov.Utility;
+using UnityEditor;
+using UnityEngine;
 
 
-public class ReplaceSelection: ScriptableWizard {
+public class ReplaceSelection : ScriptableWizard
+{
     static GameObject replacement = null;
     static bool keep = false;
     static bool noRotations;
@@ -18,91 +19,113 @@ public class ReplaceSelection: ScriptableWizard {
 
     public GameObject ReplacementObject = null;
     public bool KeepOriginals = false;
-    public bool noRenaming;
-    public bool noRotation;
-    public bool noScaling;
-    public bool inheritLayer;
-    public bool inheritLayerRecursively;
-    public bool inheritTag;
-    public bool iunheritStaticness;
+    public bool NoRenaming;
+    public bool NoRotation;
+    public bool NoScaling;
+    public bool InheritLayer;
+    public bool InheritLayerRecursively;
+    public bool InheritTag;
+    public bool InheritStaticness;
 
 
     [MenuItem("Tools/Replace Selection...")]
-    static void CreateWizard() {
+    static void CreateWizard()
+    {
         ScriptableWizard.DisplayWizard(
             "Replace Selection", typeof(ReplaceSelection), "Replace");
     }
 
 
-    public ReplaceSelection() {
+    public ReplaceSelection()
+    {
         ReplacementObject = replacement;
         KeepOriginals = keep;
-        noRotation = noRotations;
-        noScaling = noScale;
+        NoRotation = noRotations;
+        NoScaling = noScale;
     }
 
 
-    void OnWizardUpdate() {
+    void OnWizardUpdate()
+    {
         replacement = ReplacementObject;
         keep = KeepOriginals;
-        noRotations = noRotation;
-        noScale = noScaling;
+        noRotations = NoRotation;
+        noScale = NoScaling;
     }
 
 
-    void OnWizardCreate() {
+    void OnWizardCreate()
+    {
         if (replacement == null)
             return;
 
         Transform[] transforms = Selection.GetTransforms(SelectionMode.TopLevel | SelectionMode.Editable);
 
         List<GameObject> saved = new List<GameObject>();
-        foreach (var tr in transforms) {
-            if (tr.parent != null) {
-                if (!saved.Contains(tr.root.gameObject)) {
+        foreach (var tr in transforms)
+        {
+            if (tr.parent != null)
+            {
+                if (!saved.Contains(tr.root.gameObject))
+                {
                     Undo.RegisterFullObjectHierarchyUndo(tr.parent.gameObject, "Snapshot of " + tr.parent.gameObject);
                     saved.Add(tr.root.gameObject);
                 }
-            } else {
+            }
+            else
+            {
                 Undo.RegisterCompleteObjectUndo(tr.gameObject, "Saving original " + tr.name);
             }
         }
 
-        foreach (Transform t in transforms) {
+        foreach (Transform t in transforms)
+        {
             GameObject newGo;
             PrefabType pref = PrefabUtility.GetPrefabType(replacement);
 
-            if (pref == PrefabType.Prefab || pref == PrefabType.ModelPrefab) {
+            if (pref == PrefabType.Prefab || pref == PrefabType.ModelPrefab)
+            {
                 newGo = (GameObject)PrefabUtility.InstantiatePrefab(replacement);
-            } else {
+            }
+            else
+            {
                 newGo = GameObject.Instantiate(replacement);
             }
             Undo.RegisterCreatedObjectUndo(newGo, newGo.name + " prefab object instantiating");
             Transform newGoTrans = newGo.transform;
             newGoTrans.parent = t.parent;
-            newGo.name = noRenaming ? t.name : replacement.name;
+            newGo.name = NoRenaming ? t.name : replacement.name;
             newGoTrans.localPosition = t.localPosition;
-            if (!noScale) {
+            if (!noScale)
+            {
                 newGoTrans.localScale = t.localScale;
             }
-            if (!noRotations) {
+            if (!noRotations)
+            {
                 newGoTrans.localRotation = t.localRotation;
             }
-            if (inheritLayerRecursively) {
+            if (InheritLayerRecursively)
+            {
                 GameObjectUtil.SetLayerRecursively(newGo, t.gameObject.layer);
-            } else if (inheritLayer) {
+            }
+            else if (InheritLayer)
+            {
                 newGo.layer = t.gameObject.layer;
             }
-            if (inheritTag) {
+            if (InheritTag)
+            {
                 newGo.tag = t.tag;
             }
-            if (iunheritStaticness) {
+            if (InheritStaticness)
+            {
                 newGo.isStatic = t.gameObject.isStatic;
             }
         }
 
-        if (!keep) {
-            foreach (GameObject g in Selection.gameObjects) {
+        if (!keep)
+        {
+            foreach (GameObject g in Selection.gameObjects)
+            {
                 GameObject.DestroyImmediate(g);
             }
         }
