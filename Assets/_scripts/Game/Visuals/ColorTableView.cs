@@ -14,7 +14,6 @@ namespace Tetra4bica.Graphics
 
     public class ColorTableView : MonoBehaviour
     {
-
         [Inject]
         IGameEvents gameEvents;
 
@@ -29,7 +28,7 @@ namespace Tetra4bica.Graphics
 
 
         // Brick instances on the map.
-        Dictionary<Vector2Int, SpriteRenderer> brickMap = new Dictionary<Vector2Int, SpriteRenderer>();
+        Dictionary<Vector2Int, GameCell> brickMap = new Dictionary<Vector2Int, GameCell>();
 
         Vector2Int mapSize;
 
@@ -101,8 +100,8 @@ namespace Tetra4bica.Graphics
                 for (int y = 0; y < height; y++)
                 {
                     GameObject brickInstance = instantiateBrick(wallSpawnPoint, y);
-                    SpriteRenderer spriteRenderer = brickInstance.GetComponent<SpriteRenderer>()
-                        ?? throw new Exception($"Cell prefab does not contain {typeof(SpriteRenderer)} component!");
+                    GameCell spriteRenderer = brickInstance.GetComponent<GameCell>()
+                        ?? throw new Exception($"Cell prefab does not contain {typeof(GameCell)} component!");
                     brickMap[v2i(x, y)] = spriteRenderer;
                 }
             }
@@ -132,18 +131,9 @@ namespace Tetra4bica.Graphics
             {
                 for (int y = 0; y < mapSize.y; y++)
                 {
-                    var renderer = brickMap[v2i(x, y)];
-                    var rendererToTheRight = brickMap[v2i(x + 1, y)];
-                    if (rendererToTheRight.gameObject.activeInHierarchy
-                        && rendererToTheRight.enabled)
-                    {
-                        paintCell(renderer, rendererToTheRight.color);
-                    }
-                    else
-                    {
-                        renderer.enabled = false;
-                        //renderer.gameObject.SetActive(false);
-                    }
+                    var cell = brickMap[v2i(x, y)];
+                    var cellToTheRight = brickMap[v2i(x + 1, y)];
+                    cell.SetColor(cellToTheRight.CellColor);
                 }
             }
             {
@@ -171,15 +161,7 @@ namespace Tetra4bica.Graphics
 
         private void updateBrickVisuals(Cell cell)
         {
-            SpriteRenderer spriteRenderer = brickMap[cell.Position];
-            paintCell(spriteRenderer, Cells.ToUnityColor(cell.Color));
-        }
-
-        private static void paintCell(SpriteRenderer spriteRenderer, Color color)
-        {
-            //spriteRenderer.gameObject.SetActive(true);
-            spriteRenderer.enabled = true;
-            spriteRenderer.color = color;
+            brickMap[cell.Position].SetColor(cell.Color);
         }
 
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor eliminatedCellColor)
@@ -204,8 +186,8 @@ namespace Tetra4bica.Graphics
 
         private void eraseCell(Vector2Int xy)
         {
-            SpriteRenderer spriteRenderer = brickMap[xy];
-            spriteRenderer.enabled = false;
+            var cell = brickMap[xy];
+            cell.SetColor(null);
             //spriteRenderer.gameObject.SetActive(false);
         }
     }

@@ -131,12 +131,12 @@ namespace Tetra4bica.Input
                         : VerticalInput.Down
                     : VerticalInput.None);
             // Non screen input streams are updated each frame so can be
-            // easely zipped for simultaneous pressing horizontal and vertical buttons.
+            // easily zipped for simultaneous pressing horizontal and vertical buttons.
             var combinedPlayerMovementStream = playerHorizontalInputStream
                 .Zip(playerVerticalInputStream, (hor, ver) => new MovementInput(hor, ver))
                 .Where(inp => inp.Vertical != VerticalInput.None || inp.Horizontal != HorizontalInput.None)
                 // Merging with screen button events
-                .Merge(new[] { screenButtonsHorizontalInputStream, screenButtonsVerticalInputStream });
+                .Merge(screenButtonsHorizontalInputStream, screenButtonsVerticalInputStream);
             return combinedPlayerMovementStream;
         }
 
