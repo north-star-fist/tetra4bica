@@ -31,7 +31,7 @@ namespace Tetra4bica.Graphics
 
         private PlayerVisuals _backComponent;
 
-        private readonly GameObject[] _playerCells = new GameObject[PLAYER_TETRAMINO_CELL_COUNT];
+        private readonly GameCell[] _playerCells = new GameCell[PLAYER_TETRAMINO_CELL_COUNT];
 
         private void Awake()
         {
@@ -48,7 +48,7 @@ namespace Tetra4bica.Graphics
             IObservable<Unit> gameOverObservable
         )
         {
-            this._backComponent = backComponent;
+            _backComponent = backComponent;
             playerTetrominoObservable.Subscribe(RenderPlayer);
             gameOverObservable.WithLatestFrom(playerTetrominoObservable, (_, tetromino) => tetromino)
                 .Subscribe(t => _ = animatePlayerDeath(t));
@@ -56,11 +56,13 @@ namespace Tetra4bica.Graphics
             _playerCellPool = backComponent._playerCellPool;
             for (int i = 0; i < PLAYER_TETRAMINO_CELL_COUNT; i++)
             {
-                _playerCells[i] = _playerCellPool.Get();
-                _playerCells[i].SetActive(false);
-                SpriteRenderer renderer = _playerCells[i].GetComponent<SpriteRenderer>();
-                if (renderer != null)
-                { renderer.color = Cells.ToUnityColor(backComponent._gameSettings.PlayerColor); }
+                _playerCells[i] = _playerCellPool.Get().GetComponent<GameCell>();
+                if (_playerCells[i] == null)
+                {
+                    throw new MissingComponentException($"No {nameof(GameCell)} component found");
+                }
+                _playerCells[i].gameObject.SetActive(false);
+                _playerCells[i].SetColor(backComponent._gameSettings.PlayerColor);
             }
         }
 
@@ -76,14 +78,14 @@ namespace Tetra4bica.Graphics
                 {
                     break;
                 }
-                GameObject plCellObj = _playerCells[playerCellsCounter];
+                var plCellComp = _playerCells[playerCellsCounter];
                 Vector2 cellShift = new Vector2(
                     plCell.x * _backComponent._visualSettings.CellSize,
                     plCell.y * _backComponent._visualSettings.CellSize
                 );
-                plCellObj.transform.position =
+                plCellComp.transform.position =
                     _backComponent._visualSettings.BottomLeftPoint + (Vector3)cellShift;
-                plCellObj.SetActive(true);
+                plCellComp.gameObject.SetActive(true);
                 playerCellsCounter++;
             }
         }
@@ -122,7 +124,7 @@ namespace Tetra4bica.Graphics
         {
             foreach (var cell in _playerCells)
             {
-                cell.SetActive(false);
+                cell.gameObject.SetActive(false);
             }
         }
     }

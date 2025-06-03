@@ -120,15 +120,15 @@ namespace Tetra4bica.Core
                 bool projectilesCollideMapBounds
             )
             {
-                this.MapWidth = mapWidth;
-                this.MapHeight = mapHeight;
-                this.ScrollTimeStep = scrollTimeStep;
-                this.PlayerStartPosition = playerStartPosition;
-                this.PlayerColor = playerColor;
-                this.FrozenProjectileColor = frozenProjectileColor;
-                this.ProjectileSpeed = projectileSpeed;
-                this.LateralBricksStopProjectiles = lateralBricksStopProjectiles;
-                this.ProjectilesCollideMapBounds = projectilesCollideMapBounds;
+                MapWidth = mapWidth;
+                MapHeight = mapHeight;
+                ScrollTimeStep = scrollTimeStep;
+                PlayerStartPosition = playerStartPosition;
+                PlayerColor = playerColor;
+                FrozenProjectileColor = frozenProjectileColor;
+                ProjectileSpeed = projectileSpeed;
+                LateralBricksStopProjectiles = lateralBricksStopProjectiles;
+                ProjectilesCollideMapBounds = projectilesCollideMapBounds;
             }
         }
 

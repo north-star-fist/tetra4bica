@@ -45,7 +45,6 @@ namespace Tetra4bica.Core
             playerColor: playerColor
         )
         {
-
         }
 
         public PlayerTetromino(
