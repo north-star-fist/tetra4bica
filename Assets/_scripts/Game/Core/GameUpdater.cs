@@ -13,14 +13,13 @@ namespace Tetra4bica.Core
     public class GameUpdater : MonoBehaviour, IGameTimeEvents
     {
 
-        private readonly ISubject<float> frames = new Subject<float>();
+        private readonly ISubject<float> _frames = new Subject<float>();
 
-        IObservable<float> IGameTimeEvents.FrameUpdateStream => frames;
+        IObservable<float> IGameTimeEvents.FrameUpdateStream => _frames;
 
         private void Awake()
         {
-            Observable.EveryGameObjectUpdate().Subscribe(_ => frames.OnNext(Time.deltaTime));
+            Observable.EveryGameObjectUpdate().Subscribe(_ => _frames.OnNext(Time.deltaTime));
         }
-
     }
 }

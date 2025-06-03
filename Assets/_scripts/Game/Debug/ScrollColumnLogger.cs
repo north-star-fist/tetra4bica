@@ -14,50 +14,50 @@ namespace Tetra4bica.Debugging
     {
 
         [SerializeField, Tooltip("Relative path to file in persistent storage")]
-        private string logFilePath;
+        private string _logFilePath;
 
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
 
-        FileStream logFileStream;
-        readonly IFormatter formatter = new BinaryFormatter();
+        FileStream _logFileStream;
+        private readonly IFormatter _formatter = new BinaryFormatter();
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(logFilePath))
+            if (string.IsNullOrEmpty(_logFilePath))
             {
                 Debug.LogWarning("Event log file path is undefined!");
                 return;
             }
 
-            logFileStream = new FileStream(
-                Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+            _logFileStream = new FileStream(
+                Application.persistentDataPath + Path.DirectorySeparatorChar + _logFilePath,
                 FileMode.Create
             );
-            gameEvents.TableScrollStream.Subscribe(wall => logWall(wall));
+            _gameEvents.TableScrollStream.Subscribe(wall => logWall(wall));
         }
 
         void logWall(IEnumerable<CellColor?> wall)
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                formatter.Serialize(logFileStream, wall);
+                _formatter.Serialize(_logFileStream, wall);
             }
         }
 
         private void OnDestroy()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
 
         ~ScrollColumnLogger()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
     }

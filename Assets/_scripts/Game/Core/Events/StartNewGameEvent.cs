@@ -1,8 +1,12 @@
-using System;
+﻿using System;
 using UniRx;
 
-[Serializable]
-public class StartNewGameEvent : IGameInputEvent {
-    public void Apply(IGameTimeBus timeEventsBus, IGameInputBus inputBus)
-        => inputBus.GameStartStream.OnNext(Unit.Default);
+namespace Tetra4bica.Core
+{
+    [Serializable]
+    public class StartNewGameEvent : IGameInputEvent
+    {
+        public void Apply(IGameTimeBus timeEventsBus, IGameInputBus inputBus)
+            => inputBus.GameStartStream.OnNext(Unit.Default);
+    }
 }

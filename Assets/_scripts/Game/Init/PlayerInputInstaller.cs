@@ -15,67 +15,69 @@ namespace Tetra4bica.Init
     {
 
         [SerializeField]
-        private Canvas touchScreenButtonsCanvas;
-
+        private Canvas _touchScreenButtonsCanvas;
+        [Header("UI D-Pad")]
         [SerializeField, Tooltip("UI Up button")]
-        private Button screenUpButton;
+        private Button _screenUpButton;
         [SerializeField, Tooltip("UI Down button")]
-        private Button screenDownButton;
+        private Button _screenDownButton;
         [SerializeField, Tooltip("UI Left button")]
-        private Button screenLeftButton;
+        private Button _screenLeftButton;
         [SerializeField, Tooltip("UI Right button")]
-        private Button screenRightButton;
+        private Button _screenRightButton;
 
+        [Header("UI A, B buttons")]
         [SerializeField, Tooltip("UI Shoot button")]
-        private Button screenShootButton;
+        private Button _screenShootButton;
         [SerializeField, Tooltip("UI Rotate button")]
-        private Button screenRotateButton;
+        private Button _screenRotateButton;
 
+        [Header("Other UI buttons")]
         [SerializeField, Tooltip("UI Pause/Resume buttons")]
-        private Button[] pauseResumeButtons;
-
+        private Button[] _pauseResumeButtons;
         [SerializeField, Tooltip("UI Start New Game buttons")]
-        private Button[] startNewGameButtons;
+        private Button[] _startNewGameButtons;
         [SerializeField, Tooltip("UI Exit buttons")]
-        private Button[] exitButtons;
+        private Button[] _exitButtons;
 
+        [Header("Objects to trigger")]
         [SerializeField]
-        private GameObject[] deactivateOnDisable;
+        private GameObject[] _deactivateOnDisable;
         [SerializeField]
-        private GameObject[] activateOnEnable;
+        private GameObject[] _activateOnEnable;
 
         /// <summary> Sends units when player pushes a button to start new game. </summary>
-        readonly Subject<Unit> gameStartStream = new Subject<Unit>();
+        readonly Subject<Unit> _gameStartStream = new Subject<Unit>();
 
         /// <summary> Sends units when player pauses or resumes the game. </summary>
-        readonly Subject<Unit> gamePauseResumeStream = new Subject<Unit>();
+        readonly Subject<Unit> _gamePauseResumeStream = new Subject<Unit>();
 
 
         public override void InstallBindings()
         {
 
             PlayerInput inputSetup = new PlayerInput(
-                uiGameStartStream: gameStartStream,
-                uiPauseResumeStream: gamePauseResumeStream,
-                uiRightButtonStream: screenRightButton.OnClickAsObservable(),
-                uiLeftButtonStream: screenLeftButton.OnClickAsObservable(),
-                uiUpButtonStream: screenUpButton.OnClickAsObservable(),
-                uiDownButtonStream: screenDownButton.OnClickAsObservable(),
-                uiShootButtonStream: screenShootButton.OnClickAsObservable(),
-                uiRotateButtonStream: screenRotateButton.OnClickAsObservable(),
-                () => enableGameObjects(activateOnEnable, true),
-                () => enableGameObjects(deactivateOnDisable, false)
+                uiGameStartStream: _gameStartStream,
+                uiPauseResumeStream: _gamePauseResumeStream,
+                uiRightButtonStream: _screenRightButton.OnClickAsObservable(),
+                uiLeftButtonStream: _screenLeftButton.OnClickAsObservable(),
+                uiUpButtonStream: _screenUpButton.OnClickAsObservable(),
+                uiDownButtonStream: _screenDownButton.OnClickAsObservable(),
+                uiShootButtonStream: _screenShootButton.OnClickAsObservable(),
+                uiRotateButtonStream: _screenRotateButton.OnClickAsObservable(),
+                () => enableGameObjects(_activateOnEnable, true),
+                () => enableGameObjects(_deactivateOnDisable, false)
             );
             Container.BindInstance(inputSetup).AsSingle();
-            foreach (var pauseResumeButton in pauseResumeButtons)
+            foreach (var pauseResumeButton in _pauseResumeButtons)
             {
-                pauseResumeButton.OnClickAsObservable().Subscribe(_ => gamePauseResumeStream.OnNext(Unit.Default));
+                pauseResumeButton.OnClickAsObservable().Subscribe(_ => _gamePauseResumeStream.OnNext(Unit.Default));
             }
-            foreach (var startButton in startNewGameButtons)
+            foreach (var startButton in _startNewGameButtons)
             {
-                startButton.OnClickAsObservable().Subscribe(_ => gameStartStream.OnNext(Unit.Default));
+                startButton.OnClickAsObservable().Subscribe(_ => _gameStartStream.OnNext(Unit.Default));
             }
-            foreach (var exitButton in exitButtons)
+            foreach (var exitButton in _exitButtons)
             {
                 exitButton.OnClickAsObservable().Subscribe(_ => Exit());
             }
@@ -86,7 +88,7 @@ namespace Tetra4bica.Init
             if (!Application.isMobilePlatform)
             {
                 // Disable touchscreen canvas for non-mobile platforms.
-                touchScreenButtonsCanvas.gameObject.SetActive(false);
+                _touchScreenButtonsCanvas.gameObject.SetActive(false);
             }
         }
 

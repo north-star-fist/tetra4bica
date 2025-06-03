@@ -16,11 +16,11 @@ namespace Tetra4bica.Core
     {
         // Player tetraminos. Default and rotated variants
         // Dir => Matrix
-        readonly IDictionary<Vector2Int, CellFragment> dirFormMap;
+        private readonly IDictionary<Vector2Int, CellFragment> _dirFormMap;
 
         public Vector2Int Position;
         // Pivot to rotate around (as shift from the bottom left corner of the form)
-        Vector2Int pivot;
+        private Vector2Int _pivot;
         public Vector2Int Muzzle;
         public Vector2Int Direction;
         public readonly CellColor Color;
@@ -29,7 +29,7 @@ namespace Tetra4bica.Core
         {
             get
             {
-                return dirFormMap[Direction].Size;
+                return _dirFormMap[Direction].Size;
             }
         }
 
@@ -74,11 +74,11 @@ namespace Tetra4bica.Core
             CellColor playerColor
         )
         {
-            this.Position = position;
-            this.pivot = pivot;
-            this.Muzzle = muzzle;
-            this.Direction = direction;
-            this.Color = playerColor;
+            Position = position;
+            _pivot = pivot;
+            Muzzle = muzzle;
+            Direction = direction;
+            Color = playerColor;
 
             Dictionary<Vector2Int, CellFragment> forms = new Dictionary<Vector2Int, CellFragment> {
                 { direction, formMatrix }
@@ -92,7 +92,7 @@ namespace Tetra4bica.Core
                 curDir = global::Direction.RotateBy90(curDir, true);
                 forms.Add(curDir, curForm);
             }
-            dirFormMap = forms;
+            _dirFormMap = forms;
         }
 
         PlayerTetromino(
@@ -104,25 +104,25 @@ namespace Tetra4bica.Core
             CellColor playerColor
         )
         {
-            this.Muzzle = muzzle;
-            this.Direction = direction;
-            this.Position = position;
-            this.pivot = pivot;
-            this.Color = playerColor;
-            this.dirFormMap = matrices;
+            Muzzle = muzzle;
+            Direction = direction;
+            Position = position;
+            _pivot = pivot;
+            Color = playerColor;
+            _dirFormMap = matrices;
         }
 
         public PlayerTetromino Rotate(bool clockwise)
         {
             var newDir = global::Direction.RotateBy90(Direction, clockwise);
-            CellFragment resForm = dirFormMap[newDir];
+            CellFragment resForm = _dirFormMap[newDir];
 
             Vector2Int newBounds = resForm.Size;
-            Vector2Int newPivot = rotateAndShift(pivot, clockwise, newBounds);
-            var newPosition = Position + (pivot - newPivot);
+            Vector2Int newPivot = rotateAndShift(_pivot, clockwise, newBounds);
+            var newPosition = Position + (_pivot - newPivot);
             return new PlayerTetromino(
                 newPosition,
-                dirFormMap,
+                _dirFormMap,
                 newPivot,
                 rotateAndShift(Muzzle, clockwise, newBounds),
                 newDir,
@@ -143,18 +143,18 @@ namespace Tetra4bica.Core
         }
 
         public PlayerTetromino WithPosition(Vector2Int playerCoordinates) =>
-            new PlayerTetromino(playerCoordinates, dirFormMap, pivot, Muzzle, Direction, Color);
+            new PlayerTetromino(playerCoordinates, _dirFormMap, _pivot, Muzzle, Direction, Color);
 
         public CellFragment.VerticalCellsEnumerable GetVerticalCells(int wallX)
         {
-            var curForm = dirFormMap[Direction];
+            var curForm = _dirFormMap[Direction];
             return curForm.GetVerticalCells(wallX - Position.x, Position);
         }
 
         /// <summary> Public non GC enumerator of cell positions. </summary>
         public HashSetVector2IntWrapper GetEnumerator()
         {
-            var curForm = dirFormMap[Direction];
+            var curForm = _dirFormMap[Direction];
             return curForm.GetEnumerator(Position);
         }
 
@@ -167,7 +167,7 @@ namespace Tetra4bica.Core
 
         public bool Contains(Vector2Int cell)
         {
-            return dirFormMap[Direction].Contains(cell - Position);
+            return _dirFormMap[Direction].Contains(cell - Position);
         }
 
         public override bool Equals(object obj)
@@ -184,13 +184,13 @@ namespace Tetra4bica.Core
         }
         public bool Equals(PlayerTetromino other) =>
             Position.Equals(other.Position)
-            && pivot.Equals(other.pivot)
+            && _pivot.Equals(other._pivot)
             && Muzzle.Equals(other.Muzzle)
             && Direction.Equals(other.Direction)
             && Color == other.Color
-            && dirFormMap[Direction].Equals(other.dirFormMap[Direction]);
+            && _dirFormMap[Direction].Equals(other._dirFormMap[Direction]);
 
-        public override int GetHashCode() => HashCode.Combine(dirFormMap, Position, pivot, Muzzle, Direction, Color);
+        public override int GetHashCode() => HashCode.Combine(_dirFormMap, Position, _pivot, Muzzle, Direction, Color);
 
         public static bool operator ==(PlayerTetromino left, PlayerTetromino right)
             => EqualityComparer<PlayerTetromino>.Default.Equals(left, right);

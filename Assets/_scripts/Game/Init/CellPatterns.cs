@@ -4,15 +4,19 @@ using Tetra4bica.Core;
 using Tetra4bica.Util;
 using UnityEngine;
 
-namespace Tetra4bica.Init {
-    internal class CellPatterns : ICellPatterns {
+namespace Tetra4bica.Init
+{
+    internal class CellPatterns : ICellPatterns
+    {
 
-        private Dictionary<CellColor, CellFragment[]> patterns;
+        private readonly Dictionary<CellColor, CellFragment[]> _patterns;
 
-        public CellPatterns(IDictionary<CellColor, CellFragment> patternMap) {
-            this.patterns = patternMap.Aggregate(
+        public CellPatterns(IDictionary<CellColor, CellFragment> patternMap)
+        {
+            _patterns = patternMap.Aggregate(
                 new Dictionary<CellColor, CellFragment[]>(),
-                (patternBank, newPattern) => {
+                (patternBank, newPattern) =>
+                {
                     patternBank[newPattern.Key] = getAllDirectionsPatterns(newPattern.Value);
                     return patternBank;
                 }
@@ -20,13 +24,17 @@ namespace Tetra4bica.Init {
         }
 
         public CellPatterns(IDictionary<CellColor, IEnumerable<Vector2Int>> patternMap) :
-            this(patternMap.Aggregate(new Dictionary<CellColor, CellFragment>(), (map, colCells) => {
+            this(patternMap.Aggregate(new Dictionary<CellColor, CellFragment>(), (map, colCells) =>
+            {
                 map.Add(colCells.Key, CellFragment.Fragment(colCells.Value, out var _));
                 return map;
-            })) { }
+            }))
+        { }
 
-        private CellFragment[] getAllDirectionsPatterns(CellFragment pattern) {
-            return Enumerable.Range(0, 4).Aggregate(new List<CellFragment>() { pattern }, (list, _) => {
+        private CellFragment[] getAllDirectionsPatterns(CellFragment pattern)
+        {
+            return Enumerable.Range(0, 4).Aggregate(new List<CellFragment>() { pattern }, (list, _) =>
+            {
                 list.Add(
                     CellFragment.Fragment(MatrixUtil.RotateBy90(list.Last(), true), out var _)
                 );
@@ -34,8 +42,9 @@ namespace Tetra4bica.Init {
             }).Distinct().ToArray();
         }
 
-        public CellFragment[] GetPatterns(CellColor color) {
-            return patterns[color];
+        public CellFragment[] GetPatterns(CellColor color)
+        {
+            return _patterns[color];
         }
     }
 }

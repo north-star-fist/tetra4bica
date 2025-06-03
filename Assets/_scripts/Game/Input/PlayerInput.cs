@@ -23,31 +23,31 @@ namespace Tetra4bica.Input
         private const KeyCode KEY_MENU = KeyCode.Menu;
         #endregion
 
-        private Action onEnable;
-        private Action onDisable;
+        private readonly Action _onEnable;
+        private readonly Action _onDisable;
 
         /// <summary> Player tetromino movements (up/down or left/right). </summary>
-        public IObservable<MovementInput> PlayerMovementStream => playerMovementStream;
-        private IObservable<MovementInput> playerMovementStream;
+        public IObservable<MovementInput> PlayerMovementStream => _playerMovementStream;
+        private readonly IObservable<MovementInput> _playerMovementStream;
 
         /// <summary>
         /// Player tetramino rotatations clockwise (true) or anticlockwise (false).
         /// </summary>
-        public IObservable<bool> PlayerRotateStream => playerRotateStream;
-        private IObservable<bool> playerRotateStream;
+        public IObservable<bool> PlayerRotateStream => _playerRotateStream;
+        private readonly IObservable<bool> _playerRotateStream;
 
-        public IObservable<Unit> PlayerShotStream => playerShotStream;
-        private IObservable<Unit> playerShotStream;
+        public IObservable<Unit> PlayerShotStream => _playerShotStream;
+        private readonly IObservable<Unit> _playerShotStream;
 
         /// <summary> Sends units when player pushes a button to start new game. </summary>
-        public IObservable<Unit> GameStartStream => gameStartStream;
-        private IObservable<Unit> gameStartStream;
+        public IObservable<Unit> GameStartStream => _gameStartStream;
+        private readonly IObservable<Unit> _gameStartStream;
 
         /// <summary> Sends true when player pauses the game and false when they resumes it. </summary>
-        public IObservable<bool> GamePauseResumeStream => gamePauseResumeStream;
-        private IObservable<bool> gamePauseResumeStream;
+        public IObservable<bool> GamePauseResumeStream => _gamePauseResumeStream;
+        private readonly IObservable<bool> _gamePauseResumeStream;
 
-        private bool stopped = true;
+        private bool _stopped = true;
 
         public PlayerInput(
             IObservable<Unit> uiGameStartStream,
@@ -62,21 +62,21 @@ namespace Tetra4bica.Input
             Action onDisable
         )
         {
-            this.onEnable = onEnable;
-            this.onDisable = onDisable;
+            _onEnable = onEnable;
+            _onDisable = onDisable;
 
-            playerMovementStream = combineMovementEventSources(
+            _playerMovementStream = combineMovementEventSources(
                 uiRightButtonStream,
                 uiLeftButtonStream,
                 uiUpButtonStream,
                 uiDownButtonStream
             );
 
-            playerRotateStream = createRotationsStream(uiRotateButtonStream);
-            playerShotStream = createShotsStream(uiShootButtonStream);
+            _playerRotateStream = createRotationsStream(uiRotateButtonStream);
+            _playerShotStream = createShotsStream(uiShootButtonStream);
 
-            this.gameStartStream = uiGameStartStream;
-            this.gamePauseResumeStream = combineAllPauseResumeSources(uiPauseResumeStream);
+            _gameStartStream = uiGameStartStream;
+            _gamePauseResumeStream = combineAllPauseResumeSources(uiPauseResumeStream);
         }
 
 
@@ -87,8 +87,8 @@ namespace Tetra4bica.Input
         /// </summary>
         public void Enable()
         {
-            stopped = false;
-            onEnable();
+            _stopped = false;
+            _onEnable();
         }
 
         /// <summary>
@@ -98,8 +98,8 @@ namespace Tetra4bica.Input
         /// </summary>
         public void Disable()
         {
-            stopped = true;
-            onDisable();
+            _stopped = true;
+            _onDisable();
         }
 
         private IObservable<MovementInput> combineMovementEventSources(
@@ -117,14 +117,14 @@ namespace Tetra4bica.Input
                 .Merge(new[] { uiDownButtonStream.Select(_ => new MovementInput(VerticalInput.Down)) });
 
             IObservable<HorizontalInput> playerHorizontalInputStream = Observable.EveryGameObjectUpdate()
-                .Select(_ => !stopped && UnityEngine.Input.GetButtonDown(HorizontalAxis))
+                .Select(_ => !_stopped && UnityEngine.Input.GetButtonDown(HorizontalAxis))
                 .Select(pressed => pressed
                     ? UnityEngine.Input.GetAxis(HorizontalAxis) > 0
                         ? HorizontalInput.Right
                         : HorizontalInput.Left
                     : HorizontalInput.None);
             IObservable<VerticalInput> playerVerticalInputStream = Observable.EveryGameObjectUpdate()
-                .Select(_ => !stopped && UnityEngine.Input.GetButtonDown(VerticalAxis))
+                .Select(_ => !_stopped && UnityEngine.Input.GetButtonDown(VerticalAxis))
                 .Select(pressed => pressed
                     ? UnityEngine.Input.GetAxis(VerticalAxis) > 0
                         ? VerticalInput.Up
@@ -148,7 +148,7 @@ namespace Tetra4bica.Input
                 shotStream = shotStream.Merge(new[] {
                     // Getting shots input from non-touchscreen sources only if the platform is not mobile to prevent shots 
                     // on any screen touches (keeping it only on shot screen button pushed)
-                    Observable.EveryGameObjectUpdate().Where(_ => !stopped && UnityEngine.Input.GetButtonDown(ShootButton))
+                    Observable.EveryGameObjectUpdate().Where(_ => !_stopped && UnityEngine.Input.GetButtonDown(ShootButton))
                     .Select(_ => Unit.Default)
                 });
             }
@@ -165,7 +165,7 @@ namespace Tetra4bica.Input
                 // Getting rotates input from non-touchscreen sources only if the platform is not mobile to prevent handling
                 // screen touches (keeping it only on rotate screen button pushed)
                 rotateStream = rotateStream.Merge(new[] {
-                    Observable.EveryGameObjectUpdate().Where(_ => !stopped && UnityEngine.Input.GetButtonDown(RotateButton))
+                    Observable.EveryGameObjectUpdate().Where(_ => !_stopped && UnityEngine.Input.GetButtonDown(RotateButton))
                     .Select(_ => true)
                 });
             }
@@ -190,15 +190,15 @@ namespace Tetra4bica.Input
             [Serializable]
             public enum VerticalInput { None = 0, Up = 1, Down = 2 };
 
-            public HorizontalInput Horizontal => horizontal;
-            private readonly HorizontalInput horizontal;
-            public VerticalInput Vertical => vertical;
-            private readonly VerticalInput vertical;
+            public HorizontalInput Horizontal => _horizontal;
+            private readonly HorizontalInput _horizontal;
+            public VerticalInput Vertical => _vertical;
+            private readonly VerticalInput _vertical;
 
             public MovementInput(HorizontalInput hor, VerticalInput ver)
             {
-                horizontal = hor;
-                vertical = ver;
+                _horizontal = hor;
+                _vertical = ver;
             }
 
             public MovementInput(HorizontalInput hor) : this(hor, VerticalInput.None)

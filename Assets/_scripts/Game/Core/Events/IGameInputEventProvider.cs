@@ -1,6 +1,11 @@
-using System;
+﻿using System;
 
 /// <summary> Game Input Events provider interface. </summary>
-public interface IGameInputEventProvider {
-    public IObservable<IGameInputEvent> GetInputStream();
+
+namespace Tetra4bica.Core
+{
+    public interface IGameInputEventProvider
+    {
+        public IObservable<IGameInputEvent> GetInputStream();
+    }
 }

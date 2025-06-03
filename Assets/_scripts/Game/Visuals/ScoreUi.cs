@@ -19,56 +19,57 @@ namespace Tetra4bica.Graphics
     {
 
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource uiSoundsAudioSource;
+        private AudioSource _uiSoundsAudioSource;
 
         [Inject]
-        VisualSettings visualSettings;
+        private VisualSettings _visualSettings;
 
         [Inject(Id = PoolId.SCORE_CELLS)]
-        IObjectPool<GameObject> scoreParticlesPool;
+        private IObjectPool<GameObject> _scoreParticlesPool;
 
         [SerializeField, Tooltip("Root Rect Transform of the whole scores component (label + count)")]
-        private RectTransform scoresPanel;
+        private RectTransform _scoresPanel;
         [SerializeField, Tooltip("TextMeshPro component with score counter")]
-        private TMP_Text scoreCountTextTMP;
+        private TMP_Text _scoreCountTextTMP;
         [SerializeField, Tooltip("Mask above the score text. Put it here todisable on game over")]
-        private Image scoresBackground;
+        private Image _scoresBackground;
         [SerializeField]
-        private AudioResource scoreGainSfx;
+        private AudioResource _scoreGainSfx;
 
         [SerializeField, Tooltip("Size of Scores on Game Over event")]
-        private Vector2 scoreRectTransformFinalScale = Vector2.one * 4;
+        private Vector2 _scoreRectTransformFinalScale = Vector2.one * 4;
         [SerializeField, Tooltip("Score panel ordinary position")]
-        private RectTransform scoreTextPosition;
+        private RectTransform _scoreTextPosition;
         [SerializeField, Tooltip("Score panel game over position")]
-        private RectTransform gameOverScoreTextPosition;
+        private RectTransform _gameOverScoreTextPosition;
 
-        Vector3 scoreParticlesLandingWorldPosition;
+        private Vector3 _scoreParticlesLandingWorldPosition;
 
-        uint uiScores;
-        uint trueScores;
-        private TweenCellParticleWrapper[,] cellWrappers;
+        private uint _uiScores;
+        private uint _trueScores;
+        private TweenCellParticleWrapper[,] _cellWrappers;
 
-        TweenerCore<Vector3, Vector3, DG.Tweening.Plugins.Options.VectorOptions> finalPositionTween;
-        Sequence scoresFinalAnimation;
+        private TweenerCore<Vector3, Vector3, DG.Tweening.Plugins.Options.VectorOptions> _finalPositionTween;
+        private Sequence _scoresFinalAnimation;
 
-        bool isWebGlPlayer;
+        private bool _isWebGlPlayer;
+
 
         private void Start()
         {
-            isWebGlPlayer = Application.platform == RuntimePlatform.WebGLPlayer;
-            if (scoreCountTextTMP == null)
+            _isWebGlPlayer = Application.platform == RuntimePlatform.WebGLPlayer;
+            if (_scoreCountTextTMP == null)
             {
-                throw new ArgumentException($"{nameof(scoreCountTextTMP)} is undefined");
+                throw new ArgumentException($"{nameof(_scoreCountTextTMP)} is undefined");
             }
             Setup(
-                gameEvents.GameStartedStream,
-                gameEvents.EliminatedBricksStream,
-                gameEvents.ScoreStream,
-                gameEvents.GamePhaseStream.Where(g => g == GamePhase.GameOver).AsUnitObservable()
+                _gameEvents.GameStartedStream,
+                _gameEvents.EliminatedBricksStream,
+                _gameEvents.ScoreStream,
+                _gameEvents.GamePhaseStream.Where(g => g == GamePhase.GameOver).AsUnitObservable()
             );
         }
 
@@ -94,36 +95,36 @@ namespace Tetra4bica.Graphics
                 }
             );
             eliminatedBricksObservable.Subscribe(cell => launchDestroyedBrickAnimation(cell.Position, cell.Color));
-            scoresObservable.Subscribe(scores => this.trueScores = scores);
+            scoresObservable.Subscribe(scores => this._trueScores = scores);
             gameOverObservable.Subscribe((_) => enlargeScores());
 
             void resetScoreTextTransform()
             {
                 //scoresPanel.localScale = Vector3.one;
-                scoresBackground.enabled = true;
-                finalPositionTween.Rewind();
-                scoresFinalAnimation.Rewind();
-                scoresPanel.position = scoreTextPosition.TransformPoint(scoreTextPosition.rect.center);
+                _scoresBackground.enabled = true;
+                _finalPositionTween.Rewind();
+                _scoresFinalAnimation.Rewind();
+                _scoresPanel.position = _scoreTextPosition.TransformPoint(_scoreTextPosition.rect.center);
             }
         }
 
 
         private void createDoTweenCache(Vector2Int size)
         {
-            cellWrappers = new TweenCellParticleWrapper[size.x, size.y];
+            _cellWrappers = new TweenCellParticleWrapper[size.x, size.y];
             for (int x = 0; x < size.x; x++)
             {
                 for (int y = 0; y < size.y; y++)
                 {
                     Vector2 startPos = new Vector2(
-                        visualSettings.BottomLeftPoint.x + x * visualSettings.CellSize,
-                        visualSettings.BottomLeftPoint.y + y * visualSettings.CellSize
+                        _visualSettings.BottomLeftPoint.x + x * _visualSettings.CellSize,
+                        _visualSettings.BottomLeftPoint.y + y * _visualSettings.CellSize
                     );
-                    cellWrappers[x, y] = new TweenCellParticleWrapper(
-                        scoreParticlesPool,
+                    _cellWrappers[x, y] = new TweenCellParticleWrapper(
+                        _scoreParticlesPool,
                         getScoreParticlesLandingWorldPosition,
                         startPos,
-                        visualSettings,
+                        _visualSettings,
                         forEachCellEliminated
                     );
 
@@ -133,13 +134,13 @@ namespace Tetra4bica.Graphics
 
         private void forEachCellEliminated()
         {
-            if (!isWebGlPlayer)
+            if (!_isWebGlPlayer)
             {
-                SoundUtils.PlaySound(uiSoundsAudioSource, scoreGainSfx);
+                SoundUtils.PlaySound(_uiSoundsAudioSource, _scoreGainSfx);
             }
-            if (uiScores < trueScores)
+            if (_uiScores < _trueScores)
             {
-                setUiScores(uiScores + 1);
+                setUiScores(_uiScores + 1);
             }
             else
             {
@@ -147,11 +148,11 @@ namespace Tetra4bica.Graphics
             }
         }
 
-        private Vector2 getScoreParticlesLandingWorldPosition() => scoreParticlesLandingWorldPosition;
+        private Vector2 getScoreParticlesLandingWorldPosition() => _scoreParticlesLandingWorldPosition;
 
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor cell)
         {
-            var cellWrapper = cellWrappers[xy.x, xy.y];
+            var cellWrapper = _cellWrappers[xy.x, xy.y];
             SpriteRenderer renderer = cellWrapper.GetRenderer();
             renderer.color = Cells.ToUnityColor(cell);
             renderer.enabled = true;
@@ -160,28 +161,28 @@ namespace Tetra4bica.Graphics
 
         private void setUiScores(uint uiScores)
         {
-            if (this.uiScores == uiScores)
+            if (this._uiScores == uiScores)
             {
                 return;
             }
-            this.uiScores = uiScores;
-            scoreCountTextTMP.text = uiScores.ToString("D4");
+            this._uiScores = uiScores;
+            _scoreCountTextTMP.text = uiScores.ToString("D4");
         }
 
         private void updateScoresDestinationPosition()
-            => scoreParticlesLandingWorldPosition
-                = Camera.main.ScreenToWorldPoint(scoreCountTextTMP.transform.position);
+            => _scoreParticlesLandingWorldPosition
+                = Camera.main.ScreenToWorldPoint(_scoreCountTextTMP.transform.position);
 
         private class TweenCellParticleWrapper
         {
 
-            IObjectPool<GameObject> pool;
-            GameObject cell;
-            Func<Vector2> scorePosition;
-            Vector2 startPosition;
-            private float flightTime;
-            private Sequence scoreTweenSeq;
-            Action onComplete;
+            private readonly IObjectPool<GameObject> _pool;
+            private GameObject _cell;
+            private readonly Func<Vector2> _scorePosition;
+            private Vector2 _startPosition;
+            private readonly float _flightTime;
+            private readonly Sequence _scoreTweenSeq;
+            private readonly Action _onComplete;
 
             public TweenCellParticleWrapper(
                 IObjectPool<GameObject> cellPool,
@@ -191,38 +192,38 @@ namespace Tetra4bica.Graphics
                 Action onTweenComplete
             )
             {
-                this.pool = cellPool;
-                this.scorePosition = scorePosition;
-                startPosition = startPos;
+                this._pool = cellPool;
+                this._scorePosition = scorePosition;
+                _startPosition = startPos;
 
-                flightTime = UnityEngine.Random.Range(
+                _flightTime = UnityEngine.Random.Range(
                     visualSettings.ScoreParticlesFlightTimeMin,
                     visualSettings.ScoreParticlesFlightTimeMax
                 );
 
-                scoreTweenSeq = DOTween.Sequence()
+                _scoreTweenSeq = DOTween.Sequence()
                     .Append(GetPositionTween())
                     .Insert(0, GetScaleTween());
-                scoreTweenSeq.onComplete = () =>
+                _scoreTweenSeq.onComplete = () =>
                 {
                     GetRenderer().enabled = false;
-                    cell = null;
-                    this.onComplete?.Invoke();
+                    _cell = null;
+                    this._onComplete?.Invoke();
                 };
-                this.onComplete = onTweenComplete;
-                cell = null;    // unbinding of the temporary cell
+                this._onComplete = onTweenComplete;
+                _cell = null;    // unbinding of the temporary cell
             }
 
-            public Sequence GetTweenSequence() { return scoreTweenSeq; }
+            public Sequence GetTweenSequence() { return _scoreTweenSeq; }
 
             public Tween GetPositionTween()
             {
-                return DOTween.To(GetPosition, SetPosition, startPosition, flightTime).From();
+                return DOTween.To(GetPosition, SetPosition, _startPosition, _flightTime).From();
             }
 
             public Tween GetScaleTween()
             {
-                return DOTween.To(GetScale, SetScale, (Vector2.one * 0.3f).toVector3(), flightTime);
+                return DOTween.To(GetScale, SetScale, (Vector2.one * 0.3f).toVector3(), _flightTime);
             }
 
             public Vector2 GetPosition()
@@ -247,14 +248,14 @@ namespace Tetra4bica.Graphics
 
             GameObject getPooledCell()
             {
-                if (cell == null)
+                if (_cell == null)
                 {
-                    cell = pool.Get();
+                    _cell = _pool.Get();
                     GetRenderer().enabled = false;
-                    cell.transform.SetPositionAndRotation(scorePosition(), Quaternion.Euler(0, 0, UnityEngine.Random.value));
-                    cell.transform.localScale = Vector3.one * 7;
+                    _cell.transform.SetPositionAndRotation(_scorePosition(), Quaternion.Euler(0, 0, UnityEngine.Random.value));
+                    _cell.transform.localScale = Vector3.one * 7;
                 }
-                return cell;
+                return _cell;
             }
 
             public SpriteRenderer GetRenderer()
@@ -267,25 +268,25 @@ namespace Tetra4bica.Graphics
         {
             // Canvas layout can be changed with time, especially in WebGL player where game viewport is 
             // controlled by browser. So score text positions should be synchronised appropriatelly.
-            finalPositionTween.ChangeStartValue(scoreTextPosition.TransformPoint(scoreTextPosition.rect.center));
-            finalPositionTween.ChangeEndValue(gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center));
-            finalPositionTween.Play();
-            scoresFinalAnimation.Play();
+            _finalPositionTween.ChangeStartValue(_scoreTextPosition.TransformPoint(_scoreTextPosition.rect.center));
+            _finalPositionTween.ChangeEndValue(_gameOverScoreTextPosition.TransformPoint(_gameOverScoreTextPosition.rect.center));
+            _finalPositionTween.Play();
+            _scoresFinalAnimation.Play();
         }
 
         private void initScoresFinalAnimation()
         {
-            finalPositionTween =
+            _finalPositionTween =
                 DOTween.To(
-                    () => scoresPanel.position,
-                    p => scoresPanel.position = p,
-                    gameOverScoreTextPosition.TransformPoint(gameOverScoreTextPosition.rect.center),
+                    () => _scoresPanel.position,
+                    p => _scoresPanel.position = p,
+                    _gameOverScoreTextPosition.TransformPoint(_gameOverScoreTextPosition.rect.center),
                     1f
                 );
-            scoresFinalAnimation = DOTween.Sequence()
-                .Join(DOTween.To(() => scoresPanel.localScale, s => scoresPanel.localScale = s,
-                    scoreRectTransformFinalScale.toVector3(), 1f));
-            scoresFinalAnimation.onPlay = () => { scoresBackground.enabled = false; };
+            _scoresFinalAnimation = DOTween.Sequence()
+                .Join(DOTween.To(() => _scoresPanel.localScale, s => _scoresPanel.localScale = s,
+                    _scoreRectTransformFinalScale.toVector3(), 1f));
+            _scoresFinalAnimation.onPlay = () => { _scoresBackground.enabled = false; };
             //.Join(finalPositionTween);
 
         }

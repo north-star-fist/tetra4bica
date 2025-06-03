@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using Tetra4bica.Core;
 using UniRx;
 using UnityEngine;
 using Zenject;
@@ -11,49 +12,49 @@ namespace Tetra4bica.Debugging
     {
 
         [SerializeField, Tooltip("Relative path to file in persistent storage")]
-        private string logFilePath;
+        private string _logFilePath;
 
         [Inject]
-        IGameInputEventProvider eventProvider;
+        private IGameInputEventProvider _eventProvider;
 
-        FileStream logFileStream;
-        readonly IFormatter formatter = new BinaryFormatter();
+        private FileStream _logFileStream;
+        private readonly IFormatter _formatter = new BinaryFormatter();
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(logFilePath))
+            if (string.IsNullOrEmpty(_logFilePath))
             {
                 Debug.LogWarning("Event log file path is undefined!");
                 return;
             }
-            logFileStream = new FileStream(
-                Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+            _logFileStream = new FileStream(
+                Application.persistentDataPath + Path.DirectorySeparatorChar + _logFilePath,
                 FileMode.Create
             );
-            eventProvider.GetInputStream().Subscribe(logEvent);
+            _eventProvider.GetInputStream().Subscribe(logEvent);
         }
 
         void logEvent(IGameInputEvent e)
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                formatter.Serialize(logFileStream, e);
+                _formatter.Serialize(_logFileStream, e);
             }
         }
 
         private void OnDestroy()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
 
         ~InputEventLogger()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
     }

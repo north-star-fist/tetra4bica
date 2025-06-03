@@ -9,40 +9,40 @@ namespace Tetra4bica.Graphics
     public class GameCell : MonoBehaviour
     {
         [SerializeField]
-        private SpriteRenderer spriteRenderer;
+        private SpriteRenderer _spriteRenderer;
         [SerializeField]
-        private ColorSprite[] spriteMap;
+        private ColorSprite[] _spriteMap;
 
-        public SpriteRenderer SpriteRenderer => spriteRenderer;
+        public SpriteRenderer SpriteRenderer => _spriteRenderer;
 
-        public CellColor? CellColor => cellColor;
-        private CellColor? cellColor;
+        public CellColor? CellColor => _cellColor;
+        private CellColor? _cellColor;
 
-        private readonly Dictionary<CellColor, Sprite> colorToSpriteMap = new Dictionary<CellColor, Sprite>();
+        private readonly Dictionary<CellColor, Sprite> _colorToSpriteMap = new Dictionary<CellColor, Sprite>();
 
         private void Awake()
         {
-            if (spriteMap != null)
+            if (_spriteMap != null)
             {
-                foreach (var pair in spriteMap)
+                foreach (var pair in _spriteMap)
                 {
-                    colorToSpriteMap.Add(pair.Color, pair.Sprite);
+                    _colorToSpriteMap.Add(pair.Color, pair.Sprite);
                 }
             }
         }
 
         public void SetColor(CellColor? cellColor)
         {
-            this.cellColor = cellColor;
+            this._cellColor = cellColor;
 
-            paintCell(spriteRenderer, cellColor);
+            paintCell(_spriteRenderer, cellColor);
         }
 
         private void paintCell(SpriteRenderer spriteRenderer, CellColor? color)
         {
             if (color.HasValue)
             {
-                spriteRenderer.sprite = colorToSpriteMap[color.Value];
+                spriteRenderer.sprite = _colorToSpriteMap[color.Value];
                 //spriteRenderer.color = Cells.ToUnityColor(color.Value);
             }
             spriteRenderer.enabled = color.HasValue;

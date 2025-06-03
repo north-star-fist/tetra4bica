@@ -1,4 +1,5 @@
 ﻿using System;
+using Tetra4bica.Core;
 using UnityEngine;
 
 namespace Tetra4bica.Init

@@ -15,32 +15,32 @@ namespace Tetra4bica.Graphics
     public class ColorTableView : MonoBehaviour
     {
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
 
         [Inject]
-        VisualSettings visualSettings;
+        private VisualSettings _visualSettings;
 
         [Inject(Id = PoolId.GAME_CELLS)]
-        IObjectPool<GameObject> bricksPool;
+        private IObjectPool<GameObject> _bricksPool;
 
         [Inject(Id = PoolId.WALL_CELL_EXPLOSION)]
-        IObjectPool<GameObject> wallBrickExplosionParticlesPool;
+        private IObjectPool<GameObject> _wallBrickExplosionParticlesPool;
 
 
         // Brick instances on the map.
-        Dictionary<Vector2Int, GameCell> brickMap = new Dictionary<Vector2Int, GameCell>();
+        private Dictionary<Vector2Int, GameCell> _brickMap = new Dictionary<Vector2Int, GameCell>();
 
-        Vector2Int mapSize;
+        private Vector2Int _mapSize;
 
-        bool started;
+        private bool _started;
 
         private void Awake()
         {
             Setup(
-                gameEvents.GameStartedStream,
-                gameEvents.NewCellStream,
-                gameEvents.TableScrollStream,
-                gameEvents.EliminatedBricksStream
+                _gameEvents.GameStartedStream,
+                _gameEvents.NewCellStream,
+                _gameEvents.TableScrollStream,
+                _gameEvents.EliminatedBricksStream
             );
         }
 
@@ -58,26 +58,26 @@ namespace Tetra4bica.Graphics
             );
             gameStartedStream.Subscribe(mapSize =>
             {
-                if (this.mapSize == mapSize)
+                if (this._mapSize == mapSize)
                 {
                     eraseAll();
                     return;
                 }
-                this.mapSize = mapSize;
+                this._mapSize = mapSize;
                 instantiateBricks(
                     mapSize.x, mapSize.y,
-                    visualSettings.BottomLeftPoint
+                    _visualSettings.BottomLeftPoint
                 );
                 eraseAll();
-                started = true;
+                _started = true;
             });
         }
 
         private void eraseAll()
         {
-            for (int x = 0; x < mapSize.x; x++)
+            for (int x = 0; x < _mapSize.x; x++)
             {
-                for (int y = 0; y < mapSize.y; y++)
+                for (int y = 0; y < _mapSize.y; y++)
                 {
                     eraseCell(v2i(x, y));
                 }
@@ -86,15 +86,15 @@ namespace Tetra4bica.Graphics
 
         private void instantiateBricks(int width, int height, Vector2 bottomLeftTunnelPoint)
         {
-            foreach (var brick in brickMap.Values)
+            foreach (var brick in _brickMap.Values)
             {
-                bricksPool.Release(brick.gameObject);
+                _bricksPool.Release(brick.gameObject);
             }
-            brickMap.Clear();
+            _brickMap.Clear();
             for (int x = 0; x < width; x++)
             {
                 Vector2 wallSpawnPoint = new Vector2(
-                    bottomLeftTunnelPoint.x + x * visualSettings.CellSize,
+                    bottomLeftTunnelPoint.x + x * _visualSettings.CellSize,
                     bottomLeftTunnelPoint.y
                 );
                 for (int y = 0; y < height; y++)
@@ -102,7 +102,7 @@ namespace Tetra4bica.Graphics
                     GameObject brickInstance = instantiateBrick(wallSpawnPoint, y);
                     GameCell spriteRenderer = brickInstance.GetComponent<GameCell>()
                         ?? throw new Exception($"Cell prefab does not contain {typeof(GameCell)} component!");
-                    brickMap[v2i(x, y)] = spriteRenderer;
+                    _brickMap[v2i(x, y)] = spriteRenderer;
                 }
             }
 
@@ -110,11 +110,11 @@ namespace Tetra4bica.Graphics
             {
                 Vector3 brickPosition = new Vector2(
                     wallSpawnPoint.x,
-                    wallSpawnPoint.y + visualSettings.CellSize * y
+                    wallSpawnPoint.y + _visualSettings.CellSize * y
                 );
-                var brickInstance = bricksPool.Get();
+                var brickInstance = _bricksPool.Get();
                 brickInstance.transform.position = brickPosition;
-                brickInstance.transform.parent = visualSettings.BricksParent;
+                brickInstance.transform.parent = _visualSettings.BricksParent;
                 //brickInstance.SetActive(true);
                 return brickInstance;
             }
@@ -122,17 +122,17 @@ namespace Tetra4bica.Graphics
 
         private void scrollMap(IEnumerable<CellColor?> newWall)
         {
-            if (!started)
+            if (!_started)
             {
                 Debug.LogError("Trying to scroll the table before the game started!");
                 return;
             }
-            for (int x = 0; x < mapSize.x - 1; x++)
+            for (int x = 0; x < _mapSize.x - 1; x++)
             {
-                for (int y = 0; y < mapSize.y; y++)
+                for (int y = 0; y < _mapSize.y; y++)
                 {
-                    var cell = brickMap[v2i(x, y)];
-                    var cellToTheRight = brickMap[v2i(x + 1, y)];
+                    var cell = _brickMap[v2i(x, y)];
+                    var cellToTheRight = _brickMap[v2i(x + 1, y)];
                     cell.SetColor(cellToTheRight.CellColor);
                 }
             }
@@ -140,12 +140,12 @@ namespace Tetra4bica.Graphics
                 int y = 0;
                 foreach (var cell in newWall)
                 {
-                    if (y >= mapSize.y)
+                    if (y >= _mapSize.y)
                     {
                         Debug.LogError("Received more cells in wall than the map height!");
                         break;
                     }
-                    Vector2Int xy = v2i(mapSize.x - 1, y);
+                    Vector2Int xy = v2i(_mapSize.x - 1, y);
                     if (cell.HasValue)
                     {
                         updateBrickVisuals(new Cell(xy, cell.Value));
@@ -161,7 +161,7 @@ namespace Tetra4bica.Graphics
 
         private void updateBrickVisuals(Cell cell)
         {
-            brickMap[cell.Position].SetColor(cell.Color);
+            _brickMap[cell.Position].SetColor(cell.Color);
         }
 
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor eliminatedCellColor)
@@ -172,7 +172,7 @@ namespace Tetra4bica.Graphics
 
             void renderWallBrickExplosion(Vector2Int xy)
             {
-                GameObject cellExplParticleSystemObj = wallBrickExplosionParticlesPool.Get();
+                GameObject cellExplParticleSystemObj = _wallBrickExplosionParticlesPool.Get();
                 // TODO scale
                 cellExplParticleSystemObj.transform.position = xy.toVector3();
                 cellExplParticleSystemObj.SetActive(true);
@@ -186,7 +186,7 @@ namespace Tetra4bica.Graphics
 
         private void eraseCell(Vector2Int xy)
         {
-            var cell = brickMap[xy];
+            var cell = _brickMap[xy];
             cell.SetColor(null);
             //spriteRenderer.gameObject.SetActive(false);
         }

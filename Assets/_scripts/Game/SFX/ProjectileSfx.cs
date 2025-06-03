@@ -13,22 +13,22 @@ namespace Tetra4bica.Sound
     {
 
         [Inject]
-        IGameEvents gameLogic;
+        IGameEvents _gameLogic;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource audioSource;
+        AudioSource _audioSource;
         [SerializeField]
-        private AudioResource particleFrozenSfx;
+        private AudioResource _particleFrozenSfx;
 
         private void Awake()
         {
-            Setup(gameLogic.FrozenProjectilesStream);
+            Setup(_gameLogic.FrozenProjectilesStream);
         }
 
 
         void Setup(IObservable<Vector2Int> projectileFrozenStream)
         {
-            projectileFrozenStream.Subscribe(_ => SoundUtils.PlaySound(audioSource, particleFrozenSfx));
+            projectileFrozenStream.Subscribe(_ => SoundUtils.PlaySound(_audioSource, _particleFrozenSfx));
         }
     }
 }

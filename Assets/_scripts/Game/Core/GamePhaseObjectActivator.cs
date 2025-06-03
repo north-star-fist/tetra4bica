@@ -9,29 +9,29 @@ namespace Tetra4bica.Core
     public class GamePhaseObjectActivator : MonoBehaviour
     {
         [SerializeField]
-        private GameObject[] objects;
+        private GameObject[] _objects;
         [SerializeField]
-        private PhasePredicate[] gamePhases;
+        private PhasePredicate[] _gamePhases;
 
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
 
-        Dictionary<GamePhase, bool> phaseMap = new Dictionary<GamePhase, bool>();
+        private readonly Dictionary<GamePhase, bool> _phaseMap = new Dictionary<GamePhase, bool>();
 
         private void Awake()
         {
 
-            foreach (var phase in gamePhases)
+            foreach (var phase in _gamePhases)
             {
-                phaseMap.Add(phase.Phase, phase.Enabled);
+                _phaseMap.Add(phase.Phase, phase.Enabled);
             }
 
-            gameEvents.GamePhaseStream.Subscribe(
+            _gameEvents.GamePhaseStream.Subscribe(
                 phase =>
                 {
-                    foreach (var obj in objects)
+                    foreach (var obj in _objects)
                     {
-                        obj.SetActive(phaseMap.TryGetValue(phase, out var enabled) && enabled);
+                        obj.SetActive(_phaseMap.TryGetValue(phase, out var enabled) && enabled);
                     }
                 }
             );

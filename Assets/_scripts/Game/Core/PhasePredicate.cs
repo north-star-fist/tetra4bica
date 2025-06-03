@@ -7,11 +7,12 @@ namespace Tetra4bica.Core
     [Serializable]
     public class PhasePredicate
     {
-        public GamePhase Phase => phase;
-        public bool Enabled => enabled;
         [SerializeField]
-        private GamePhase phase;
+        private GamePhase _phase;
         [SerializeField]
-        private bool enabled;
+        private bool _enabled;
+
+        public GamePhase Phase => _phase;
+        public bool Enabled => _enabled;
     }
 }

@@ -1,16 +1,20 @@
 ﻿using System;
 
-[Serializable]
-public class FrameUpdateEvent : IGameInputEvent
+namespace Tetra4bica.Core
 {
 
-    readonly public float DeltaTime;
-
-    public FrameUpdateEvent(float deltaTime)
+    [Serializable]
+    public class FrameUpdateEvent : IGameInputEvent
     {
-        this.DeltaTime = deltaTime;
-    }
 
-    public void Apply(IGameTimeBus timeEventsBus, IGameInputBus _)
-        => timeEventsBus.FrameUpdatePublisher.OnNext(DeltaTime);
+        readonly public float DeltaTime;
+
+        public FrameUpdateEvent(float deltaTime)
+        {
+            this.DeltaTime = deltaTime;
+        }
+
+        public void Apply(IGameTimeBus timeEventsBus, IGameInputBus _)
+            => timeEventsBus.FrameUpdatePublisher.OnNext(DeltaTime);
+    }
 }

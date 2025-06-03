@@ -11,21 +11,21 @@ namespace Tetra4bica.Init
     {
 
         [Inject]
-        PlayerInput playerInput;
+        private PlayerInput _playerInput;
 
         [Inject]
-        IGameTimeEvents gameTimeEventsBus;
+        private IGameTimeEvents _gameTimeEventsBus;
 
         public IObservable<IGameInputEvent> GetInputStream()
         {
-            return gameTimeEventsBus.FrameUpdateStream
+            return _gameTimeEventsBus.FrameUpdateStream
                 .Select<float, IGameInputEvent>(dT => new FrameUpdateEvent(dT))
                 .Merge(new IObservable<IGameInputEvent>[] {
-                    playerInput.PlayerMovementStream.Select(m => new MotionEvent(m)),
-                    playerInput.PlayerShotStream.Select(_ => new ShotEvent()),
-                    playerInput.PlayerRotateStream.Select(cw => new RotateEvent(cw)),
-                    playerInput.GameStartStream.Select(_ => new StartNewGameEvent()),
-                    playerInput.GamePauseResumeStream.Select(p => new PauseResumeEvent(p))
+                    _playerInput.PlayerMovementStream.Select(m => new MotionEvent(m)),
+                    _playerInput.PlayerShotStream.Select(_ => new ShotEvent()),
+                    _playerInput.PlayerRotateStream.Select(cw => new RotateEvent(cw)),
+                    _playerInput.GameStartStream.Select(_ => new StartNewGameEvent()),
+                    _playerInput.GamePauseResumeStream.Select(p => new PauseResumeEvent(p))
                 });
         }
     }

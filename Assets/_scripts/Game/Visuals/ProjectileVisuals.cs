@@ -15,46 +15,46 @@ namespace Tetra4bica.Graphics
         private const int PARTICLES_ARRAY_START_SIZE = 8;
 
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
 
-        ParticleSystem pSystem;
-        ParticleSystem.Particle[] particles;
+        private ParticleSystem _pSystem;
+        private ParticleSystem.Particle[] _particles;
 
-        int projectilesCount = 0;
+        private int _projectilesCount = 0;
 
         private void Awake()
         {
-            pSystem = GetComponent<ParticleSystem>();
-            gameEvents.ProjectileCoordinatesStream.Subscribe(renderProjectile);
-            gameEvents.FrameUpdateStream.Subscribe(frameRefresh);
-            particles = new ParticleSystem.Particle[PARTICLES_ARRAY_START_SIZE];
+            _pSystem = GetComponent<ParticleSystem>();
+            _gameEvents.ProjectileCoordinatesStream.Subscribe(renderProjectile);
+            _gameEvents.FrameUpdateStream.Subscribe(frameRefresh);
+            _particles = new ParticleSystem.Particle[PARTICLES_ARRAY_START_SIZE];
         }
 
         private void frameRefresh(float _)
         {
-            drawParticles(projectilesCount);
-            projectilesCount = 0;
+            drawParticles(_projectilesCount);
+            _projectilesCount = 0;
         }
 
         private async Task drawParticles(int projectilesCount)
-            => pSystem.SetParticles(particles, projectilesCount);
+            => _pSystem.SetParticles(_particles, projectilesCount);
 
         void renderProjectile(Vector2 projectile)
         {
-            enlargeParticlesArrayIfNeeded(projectilesCount);
-            particles[projectilesCount] = new ParticleSystem.Particle();
+            enlargeParticlesArrayIfNeeded(_projectilesCount);
+            _particles[_projectilesCount] = new ParticleSystem.Particle();
             // TODO scale position according map scale.
-            particles[projectilesCount].position = projectile;
-            particles[projectilesCount].startSize = 1;
-            projectilesCount++;
+            _particles[_projectilesCount].position = projectile;
+            _particles[_projectilesCount].startSize = 1;
+            _projectilesCount++;
 
             void enlargeParticlesArrayIfNeeded(int projectileCount)
             {
-                if (particles.Length <= projectileCount)
+                if (_particles.Length <= projectileCount)
                 {
-                    ParticleSystem.Particle[] largerCapacityArray = new ParticleSystem.Particle[particles.Length * 2];
-                    Array.Copy(particles, largerCapacityArray, particles.Length);
-                    particles = largerCapacityArray;
+                    ParticleSystem.Particle[] largerCapacityArray = new ParticleSystem.Particle[_particles.Length * 2];
+                    Array.Copy(_particles, largerCapacityArray, _particles.Length);
+                    _particles = largerCapacityArray;
                 }
             }
         }

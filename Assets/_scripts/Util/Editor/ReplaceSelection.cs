@@ -12,10 +12,10 @@ using UnityEngine;
 
 public class ReplaceSelection : ScriptableWizard
 {
-    static GameObject replacement = null;
-    static bool keep = false;
-    static bool noRotations;
-    static bool noScale;
+    private static GameObject s_replacement = null;
+    private static bool s_keep = false;
+    private static bool s_noRotations;
+    private static bool s_noScale;
 
     public GameObject ReplacementObject = null;
     public bool KeepOriginals = false;
@@ -38,25 +38,25 @@ public class ReplaceSelection : ScriptableWizard
 
     public ReplaceSelection()
     {
-        ReplacementObject = replacement;
-        KeepOriginals = keep;
-        NoRotation = noRotations;
-        NoScaling = noScale;
+        ReplacementObject = s_replacement;
+        KeepOriginals = s_keep;
+        NoRotation = s_noRotations;
+        NoScaling = s_noScale;
     }
 
 
     void OnWizardUpdate()
     {
-        replacement = ReplacementObject;
-        keep = KeepOriginals;
-        noRotations = NoRotation;
-        noScale = NoScaling;
+        s_replacement = ReplacementObject;
+        s_keep = KeepOriginals;
+        s_noRotations = NoRotation;
+        s_noScale = NoScaling;
     }
 
 
     void OnWizardCreate()
     {
-        if (replacement == null)
+        if (s_replacement == null)
             return;
 
         Transform[] transforms = Selection.GetTransforms(SelectionMode.TopLevel | SelectionMode.Editable);
@@ -81,26 +81,26 @@ public class ReplaceSelection : ScriptableWizard
         foreach (Transform t in transforms)
         {
             GameObject newGo;
-            PrefabType pref = PrefabUtility.GetPrefabType(replacement);
+            PrefabType pref = PrefabUtility.GetPrefabType(s_replacement);
 
             if (pref == PrefabType.Prefab || pref == PrefabType.ModelPrefab)
             {
-                newGo = (GameObject)PrefabUtility.InstantiatePrefab(replacement);
+                newGo = (GameObject)PrefabUtility.InstantiatePrefab(s_replacement);
             }
             else
             {
-                newGo = GameObject.Instantiate(replacement);
+                newGo = GameObject.Instantiate(s_replacement);
             }
             Undo.RegisterCreatedObjectUndo(newGo, newGo.name + " prefab object instantiating");
             Transform newGoTrans = newGo.transform;
             newGoTrans.parent = t.parent;
-            newGo.name = NoRenaming ? t.name : replacement.name;
+            newGo.name = NoRenaming ? t.name : s_replacement.name;
             newGoTrans.localPosition = t.localPosition;
-            if (!noScale)
+            if (!s_noScale)
             {
                 newGoTrans.localScale = t.localScale;
             }
-            if (!noRotations)
+            if (!s_noRotations)
             {
                 newGoTrans.localRotation = t.localRotation;
             }
@@ -122,7 +122,7 @@ public class ReplaceSelection : ScriptableWizard
             }
         }
 
-        if (!keep)
+        if (!s_keep)
         {
             foreach (GameObject g in Selection.gameObjects)
             {

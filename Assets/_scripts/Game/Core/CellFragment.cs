@@ -24,13 +24,13 @@ namespace Tetra4bica.Core
 
         public readonly Vector2Int Size;
 
-        readonly HashSet<Vector2Int> cellsLocal;
+        private readonly HashSet<Vector2Int> _cellsLocal;
 
-        int cellsSetHash;
-        bool isCellsSetHashCached;
+        private int _cellsSetHash;
+        private bool _isCellsSetHashCached;
 
         // Shift to the first non-zero cell. It is kept not to run through all cells twice while object instantiating.
-        private Vector2Int cellsShift;
+        private Vector2Int _cellsShift;
 
 
         public static CellFragment Fragment(IEnumerable<Vector2Int> enumerable, out Vector2Int minPointShift)
@@ -50,11 +50,11 @@ namespace Tetra4bica.Core
 
         CellFragment(HashSet<Vector2Int> cells, Vector2Int size, Vector2Int cellsShift = default)
         {
-            cellsLocal = (cells == null) || cells.Count == 0 ? null : cells;
-            this.Size = size;
-            cellsSetHash = 0;
-            isCellsSetHashCached = false;
-            this.cellsShift = cellsShift;
+            _cellsLocal = (cells == null) || cells.Count == 0 ? null : cells;
+            Size = size;
+            _cellsSetHash = 0;
+            _isCellsSetHashCached = false;
+            _cellsShift = cellsShift;
         }
 
         private static void paintConnectedCells(
@@ -100,11 +100,11 @@ namespace Tetra4bica.Core
             // 7.Return.
         }
 
-        public uint Count() => (uint)(cellsLocal != null ? cellsLocal.Count : 0);
+        public uint Count() => (uint)(_cellsLocal != null ? _cellsLocal.Count : 0);
 
         public bool IsEmpty() => Size == Vector2Int.zero;
 
-        public bool Contains(Vector2Int cell) => cellsLocal != null && cellsLocal.Contains(cell - cellsShift);
+        public bool Contains(Vector2Int cell) => _cellsLocal != null && _cellsLocal.Contains(cell - _cellsShift);
 
 
         /// <summary> Returns coordinates of occupied (colored) cells for specified x coordinate. </summary>
@@ -121,7 +121,7 @@ namespace Tetra4bica.Core
 #pragma warning restore HAA0601 // Value type to reference type conversion causing boxing allocation
 
         public HashSetVector2IntWrapper GetEnumerator(Vector2Int shift)
-            => cellsLocal == null ? EMPTY_FRAGMENT_ENUMERATOR : new HashSetVector2IntWrapper(cellsLocal, cellsShift + shift);
+            => _cellsLocal == null ? EMPTY_FRAGMENT_ENUMERATOR : new HashSetVector2IntWrapper(_cellsLocal, _cellsShift + shift);
 
         public override bool Equals(object obj)
         {
@@ -136,9 +136,9 @@ namespace Tetra4bica.Core
 
         public bool Equals(CellFragment other)
         {
-            if (other.cellsLocal == null)
+            if (other._cellsLocal == null)
             {
-                return cellsLocal == null;
+                return _cellsLocal == null;
             }
             if (Size != other.Size)
             {   // Rect bounds
@@ -148,9 +148,9 @@ namespace Tetra4bica.Core
             { // Non empty cells count
                 return false;
             }
-            foreach (var cell in cellsLocal)
+            foreach (var cell in _cellsLocal)
             {
-                if (!other.cellsLocal.Contains(cell + cellsShift - other.cellsShift))
+                if (!other._cellsLocal.Contains(cell + _cellsShift - other._cellsShift))
                 {
                     return false;
                 }
@@ -160,20 +160,20 @@ namespace Tetra4bica.Core
 
         public override int GetHashCode()
         {
-            if (isCellsSetHashCached)
+            if (_isCellsSetHashCached)
             {
-                cellsSetHash = calculateCellsHash();
-                isCellsSetHashCached = true;
+                _cellsSetHash = calculateCellsHash();
+                _isCellsSetHashCached = true;
             }
-            return cellsSetHash;
+            return _cellsSetHash;
         }
 
         int calculateCellsHash()
         {
             int hash = 0;
-            foreach (var cell in cellsLocal)
+            foreach (var cell in _cellsLocal)
             {
-                hash += hash * -1521134295 + (cell + cellsShift).GetHashCode();
+                hash += hash * -1521134295 + (cell + _cellsShift).GetHashCode();
             }
             return hash;
         }
@@ -237,23 +237,23 @@ namespace Tetra4bica.Core
         public struct VerticalCellsEnumerable : IEnumerable<Vector2Int>
         {
 
-            CellFragment src;
-            readonly int x;
+            private CellFragment _src;
+            private readonly int _x;
             // All cells are shifted by this while iteraion
-            Vector2Int additionalShift;
+            private Vector2Int _additionalShift;
 
             public VerticalCellsEnumerable(CellFragment src, int x, Vector2Int additionalShift)
             {
-                this.src = src;
-                this.x = x;
-                this.additionalShift = additionalShift;
+                _src = src;
+                _x = x;
+                _additionalShift = additionalShift;
             }
 
 
             /// <summary> Public non allocating enumerator. </summary>
-            public VerticalCellsEnumerator GetEnumerator() => new VerticalCellsEnumerator(src, x, additionalShift);
+            public VerticalCellsEnumerator GetEnumerator() => new VerticalCellsEnumerator(_src, _x, _additionalShift);
 
-            public bool Contains(Vector2Int c) => src.Contains(c - additionalShift);
+            public bool Contains(Vector2Int c) => _src.Contains(c - _additionalShift);
 
             // private methods for IEnumerable inheritance
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -263,33 +263,33 @@ namespace Tetra4bica.Core
 
         }
 
-        public struct VerticalCellsEnumerator : IEnumerator<Vector2Int>, IEnumerator, IDisposable
+        public struct VerticalCellsEnumerator : IEnumerator<Vector2Int>
         {
-            private CellFragment src;
-            private int x;
-            private HashSetVector2IntWrapper srcIter;
+            private CellFragment _src;
+            private readonly int _x;
+            private HashSetVector2IntWrapper _srcIter;
             // All cells are shifted by this while iteraion
-            Vector2Int additionalShift;
+            private Vector2Int _additionalShift;
 
 
-            bool movedNextInitially;
-            bool noNext;
-            Vector2Int next;
+            private bool _movedNextInitially;
+            private bool _noNext;
+            private Vector2Int _next;
 
             public VerticalCellsEnumerator(CellFragment src, int x, Vector2Int additionalShift)
             {
-                this.src = src;
-                this.x = x;
-                this.srcIter = src.GetEnumerator();
-                movedNextInitially = false;
-                noNext = false;
-                next = default;
-                this.additionalShift = additionalShift;
+                _src = src;
+                _x = x;
+                _srcIter = src.GetEnumerator();
+                _movedNextInitially = false;
+                _noNext = false;
+                _next = default;
+                _additionalShift = additionalShift;
             }
 
-            public Vector2Int Current => !movedNextInitially || noNext
+            public Vector2Int Current => !_movedNextInitially || _noNext
                 ? throw new InvalidOperationException("No more elements to iterate!")
-                : next + additionalShift;
+                : _next + _additionalShift;
 
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
             object IEnumerator.Current => this.Current;
@@ -297,37 +297,37 @@ namespace Tetra4bica.Core
 
             public bool MoveNext()
             {
-                noNext = !getNext(out next);
-                movedNextInitially = true;
-                return !noNext;
+                _noNext = !getNext(out _next);
+                _movedNextInitially = true;
+                return !_noNext;
             }
 
             private bool getNext(out Vector2Int next)
             {
                 next = default;
-                if (src == null || x > src.Size.x || x < 0 || noNext)
+                if (_src == null || _x > _src.Size.x || _x < 0 || _noNext)
                 {
                     return false;
                 }
-                bool srcHasNext = srcIter.MoveNext();
+                bool srcHasNext = _srcIter.MoveNext();
                 while (srcHasNext)
                 {
-                    if (srcIter.Current.x == x)
+                    if (_srcIter.Current.x == _x)
                     {
-                        next = srcIter.Current;
+                        next = _srcIter.Current;
                         return true;
                     }
-                    srcHasNext = srcIter.MoveNext();
+                    srcHasNext = _srcIter.MoveNext();
                 };
                 return false;
             }
 
             void IEnumerator.Reset()
             {
-                srcIter = src.GetEnumerator();
-                movedNextInitially = false;
-                noNext = false;
-                next = default;
+                _srcIter = _src.GetEnumerator();
+                _movedNextInitially = false;
+                _noNext = false;
+                _next = default;
             }
 
             public void Dispose() { }

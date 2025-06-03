@@ -15,34 +15,34 @@ namespace Tetra4bica.Init
 
         [Header("Game Setup")]
         [SerializeField, Tooltip("Number of bricks that stay in one fullscreen vertical wall")]
-        private int tunnelHeightCellCount = 10;
+        private int _tunnelHeightCellCount = 10;
         [SerializeField, Tooltip("Length of the tunnel measured in bricks")]
-        private int tunnelWidthCellCount = 20;
+        private int _tunnelWidthCellCount = 20;
         [SerializeField, Tooltip("Delay between table cells scrolling by one cell left in seconds")]
-        private float tableScrollTimeStep = 2f;
+        private float _tableScrollTimeStep = 2f;
         [SerializeField, Tooltip("Position of the bottom left corner of player tetromino at the game start")]
-        private Vector2Int playerStartPosition = new Vector2Int(0, 4);
+        private Vector2Int _playerStartPosition = new Vector2Int(0, 4);
 
         [SerializeField, Tooltip("Player tetromino color")]
-        private CellColor playerColor;
+        private CellColor _playerColor;
 
         [SerializeField, Tooltip("Projectile speed in cells per second")]
-        private float projectileSpeed = 5f;
+        private float _projectileSpeed = 5f;
 
         [
             SerializeField,
             Tooltip("Projectiles are stopped touching bricks if this flag is on. " +
             "Like cells are rubberish and brake projectiles")
         ]
-        private bool lateralBricksStopProjectiles = true;
+        private bool _lateralBricksStopProjectiles = true;
         [SerializeField, Tooltip("Projectiles are stopped on the floor and ceiling collisions if this flag is on")]
-        private bool projectilesCollideMapBounds = true;
+        private bool _projectilesCollideMapBounds = true;
 
         [SerializeField, Tooltip("Color of projectile that became part of a wall")]
-        private CellColor frozenProjectileColor = CellColor.PaleBlue;
+        private CellColor _frozenProjectileColor = CellColor.PaleBlue;
 
         [SerializeField, Tooltip("JSON File keeping cell patterns for elimination")]
-        private string patternsFile = "cell_patterns";
+        private string _patternsFile = "cell_patterns";
 
         [
             SerializeField,
@@ -50,7 +50,7 @@ namespace Tetra4bica.Init
                 "Implementation of IGameInputEventProvider should be added to the game object. " +
                 "Use it as alternative for natural game input for Debug purposes.")
         ]
-        private CustomGameInputEventsProviderComponent customInputEventsProvider;
+        private CustomGameInputEventsProviderComponent _customInputEventsProvider;
 
         [
             SerializeField,
@@ -58,31 +58,32 @@ namespace Tetra4bica.Init
                 "Implementation of ICellGenerator should be added to the game object. " +
                 "Use it as alternative for natural game input for Debug purposes.")
         ]
-        private CustomCellColumnGeneratorComponent customCellGenerator;
+        private CustomCellColumnGeneratorComponent _customCellGenerator;
 
 
         [Inject]
-        PlayerInput playerInputSetup;
+        private PlayerInput _playerInputSetup;
+
 
         public override void InstallBindings()
         {
 
             GameSettings gSettings = new GameSettings(
-                tunnelWidthCellCount,
-                tunnelHeightCellCount,
-                tableScrollTimeStep,
-                playerStartPosition,
-                playerColor,
-                frozenProjectileColor,
-                projectileSpeed,
-                lateralBricksStopProjectiles,
-                projectilesCollideMapBounds
+                _tunnelWidthCellCount,
+                _tunnelHeightCellCount,
+                _tableScrollTimeStep,
+                _playerStartPosition,
+                _playerColor,
+                _frozenProjectileColor,
+                _projectileSpeed,
+                _lateralBricksStopProjectiles,
+                _projectilesCollideMapBounds
             );
             Container.BindInstance(gSettings).AsSingle().NonLazy();
 
-            if (customCellGenerator != null)
+            if (_customCellGenerator != null)
             {
-                Container.BindInterfacesTo<CustomCellColumnGeneratorComponent>().FromComponentOn(customCellGenerator.gameObject)
+                Container.BindInterfacesTo<CustomCellColumnGeneratorComponent>().FromComponentOn(_customCellGenerator.gameObject)
                     .AsSingle().NonLazy();
             }
             else
@@ -92,10 +93,10 @@ namespace Tetra4bica.Init
 
             Container.BindInterfacesAndSelfTo<GameUpdater>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
 
-            if (customInputEventsProvider != null)
+            if (_customInputEventsProvider != null)
             {
                 Container.BindInterfacesTo<CustomGameInputEventsProviderComponent>()
-                    .FromComponentOn(customInputEventsProvider.gameObject).AsSingle().NonLazy();
+                    .FromComponentOn(_customInputEventsProvider.gameObject).AsSingle().NonLazy();
             }
             else
             {
@@ -111,15 +112,15 @@ namespace Tetra4bica.Init
                     {
                         if (phase is GamePhase.Started)
                         {
-                            playerInputSetup.Enable();
+                            _playerInputSetup.Enable();
                         }
                         else
                         {
-                            playerInputSetup.Disable();
+                            _playerInputSetup.Disable();
                         }
                     });
                     // Do not process player input too early. Let game to start first.
-                    playerInputSetup.Disable();
+                    _playerInputSetup.Disable();
                 }
             ).NonLazy();
 
@@ -128,7 +129,7 @@ namespace Tetra4bica.Init
 
         private ICellPatterns readCellPatternsFromFile()
         {
-            TextAsset patternsAsset = Resources.Load<TextAsset>(patternsFile);
+            TextAsset patternsAsset = Resources.Load<TextAsset>(_patternsFile);
             string patternsDictionaryJson = patternsAsset.text;
             var patternMap = JsonConvert.DeserializeObject<Dictionary<CellColor, IEnumerable<Vector2Int>>>(
                 patternsDictionaryJson,

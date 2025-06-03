@@ -17,22 +17,22 @@ namespace Tetra4bica.Core
         /// <summary>
         /// Current player tetramino
         /// </summary>
-        public PlayerTetromino PlayerTetromino => playerTetromino;
+        public PlayerTetromino PlayerTetromino => _playerTetromino;
         /// <summary>
         /// Set of projectiles on the map.
         /// </summary>
-        public Projectile[] Projectiles => projectiles;
-        public uint NextProjectileInd => nextProjectileInd;
-        public GamePhase GamePhase => gamePhase;
-        public ColorTable GameTable => gameTable;
-        public uint Scores => scores;
+        public Projectile[] Projectiles => _projectiles;
+        public uint NextProjectileInd => _nextProjectileInd;
+        public GamePhase GamePhase => _gamePhase;
+        public ColorTable GameTable => _gameTable;
+        public uint Scores => _scores;
 
-        private PlayerTetromino playerTetromino;
-        private Projectile[] projectiles;
-        private uint nextProjectileInd;
-        private GamePhase gamePhase;
-        private ColorTable gameTable;
-        private uint scores;
+        private PlayerTetromino _playerTetromino;
+        private readonly Projectile[] _projectiles;
+        private uint _nextProjectileInd;
+        private GamePhase _gamePhase;
+        private readonly ColorTable _gameTable;
+        private uint _scores;
 
         public GameState(
             PlayerTetromino playerTetromino,
@@ -41,19 +41,19 @@ namespace Tetra4bica.Core
             ColorTable gameTable
         )
         {
-            this.playerTetromino = playerTetromino;
-            this.projectiles = projectiles;
-            this.gamePhase = gamePhase;
-            this.gameTable = gameTable;
-            nextProjectileInd = 0;
-            scores = 0;
+            this._playerTetromino = playerTetromino;
+            this._projectiles = projectiles;
+            this._gamePhase = gamePhase;
+            this._gameTable = gameTable;
+            _nextProjectileInd = 0;
+            _scores = 0;
         }
 
-        internal void IncScore() => scores++;
-        internal void SetPlayerTetromino(PlayerTetromino newTetramino) => this.playerTetromino = newTetramino;
+        internal void IncScore() => _scores++;
+        internal void SetPlayerTetromino(PlayerTetromino newTetramino) => this._playerTetromino = newTetramino;
 
-        internal void IncNextProjectileInd() => nextProjectileInd++;
-        internal void ResetNextProjectileInd() => nextProjectileInd = 0;
-        internal void SetGamePhase(GamePhase gamePhase) => this.gamePhase = gamePhase;
+        internal void IncNextProjectileInd() => _nextProjectileInd++;
+        internal void ResetNextProjectileInd() => _nextProjectileInd = 0;
+        internal void SetGamePhase(GamePhase gamePhase) => this._gamePhase = gamePhase;
     }
 }

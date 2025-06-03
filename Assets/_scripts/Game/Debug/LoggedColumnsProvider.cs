@@ -15,30 +15,30 @@ namespace Tetra4bica.Debugging
     {
 
         [SerializeField, Tooltip("Relative path to file in persistent storage")]
-        private string logFilePath;
+        private string _logFilePath;
 
-        FileStream logFileStream;
-        readonly IFormatter formatter = new BinaryFormatter();
+        private FileStream _logFileStream;
+        private readonly IFormatter _formatter = new BinaryFormatter();
 
-        bool finished;
+        private bool _finished;
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(logFilePath))
+            if (string.IsNullOrEmpty(_logFilePath))
             {
                 Debug.LogWarning("Event log file path is undefined!");
                 return;
             }
             try
             {
-                logFileStream = new FileStream(
-                    Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+                _logFileStream = new FileStream(
+                    Application.persistentDataPath + Path.DirectorySeparatorChar + _logFilePath,
                     FileMode.Open
                 );
             } catch
             {
                 Debug.LogWarning("Could not open event log file!");
-                finished = true;
+                _finished = true;
             }
         }
 
@@ -51,38 +51,38 @@ namespace Tetra4bica.Debugging
 
         private IEnumerable<CellColor> readFrameEvents()
         {
-            if (finished)
+            if (_finished)
             {
                 return Enumerable.Empty<CellColor>();
             }
-            if (logFileStream != null && logFileStream.Position < logFileStream.Length)
+            if (_logFileStream != null && _logFileStream.Position < _logFileStream.Length)
             {
                 try
                 {
-                    var cellList = formatter.Deserialize(logFileStream);
+                    var cellList = _formatter.Deserialize(_logFileStream);
                     return (IEnumerable<CellColor>)cellList;
                 } catch
                 {
-                    finished = true;
+                    _finished = true;
                 }
             }
-            finished = true;
+            _finished = true;
             return Enumerable.Empty<CellColor>();
         }
 
         private void OnDestroy()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
 
         ~LoggedColumnsProvider()
         {
-            if (logFileStream != null)
+            if (_logFileStream != null)
             {
-                logFileStream.Close();
+                _logFileStream.Close();
             }
         }
     }

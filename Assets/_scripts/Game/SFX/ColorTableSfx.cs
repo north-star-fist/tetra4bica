@@ -12,19 +12,19 @@ namespace Tetra4bica.Sound
     {
 
         [Inject]
-        IGameEvents gameLogic;
+        private IGameEvents _gameLogic;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource audioSource;
+        private AudioSource _audioSource;
 
         [SerializeField]
-        private AudioResource wallDestructionSfx;
+        private AudioResource _wallDestructionSfx;
 
 
         private void Awake()
         {
-            gameLogic.EliminatedBricksStream.Subscribe(
-                _ => SoundUtils.PlaySound(audioSource, wallDestructionSfx)
+            _gameLogic.EliminatedBricksStream.Subscribe(
+                _ => SoundUtils.PlaySound(_audioSource, _wallDestructionSfx)
             );
         }
     }

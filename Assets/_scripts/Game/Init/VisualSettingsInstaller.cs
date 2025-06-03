@@ -9,15 +9,15 @@ namespace Tetra4bica.Init
     {
 
         [SerializeField]
-        private VisualSettings visualSettings;
+        private VisualSettings _visualSettings;
 
         public override void InstallBindings()
         {
-            if (visualSettings.CellSize <= 0)
+            if (_visualSettings.CellSize <= 0)
             {
-                throw new ArgumentException($"{nameof(visualSettings.CellSize)} is not positive");
+                throw new ArgumentException($"{nameof(_visualSettings.CellSize)} is not positive");
             }
-            Container.BindInstance(visualSettings).AsSingle();
+            Container.BindInstance(_visualSettings).AsSingle();
         }
     }
 }

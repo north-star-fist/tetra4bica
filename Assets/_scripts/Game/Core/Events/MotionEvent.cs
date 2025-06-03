@@ -1,16 +1,21 @@
-using System;
+﻿using System;
 using Tetra4bica.Input;
 using static Tetra4bica.Input.PlayerInput;
 
-[Serializable]
-public class MotionEvent : IGameInputEvent {
+namespace Tetra4bica.Core
+{
+    [Serializable]
+    public class MotionEvent : IGameInputEvent
+    {
 
-    private readonly PlayerInput.MovementInput motion;
+        private readonly PlayerInput.MovementInput _motion;
 
-    public MotionEvent(MovementInput motion) {
-        this.motion = motion;
+        public MotionEvent(MovementInput motion)
+        {
+            _motion = motion;
+        }
+
+        public void Apply(IGameTimeBus _, IGameInputBus inputBus)
+            => inputBus.PlayerMovementStream.OnNext(_motion);
     }
-
-    public void Apply(IGameTimeBus _, IGameInputBus inputBus)
-        => inputBus.PlayerMovementStream.OnNext(motion);
 }

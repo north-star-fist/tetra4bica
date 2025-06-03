@@ -14,31 +14,31 @@ namespace Tetra4bica.Graphics
     {
 
         [Inject]
-        IGameEvents gameEvents;
+        private IGameEvents _gameEvents;
         [Inject]
-        GameLogic.GameSettings gameSettings;
+        private GameLogic.GameSettings _gameSettings;
         [Inject]
-        VisualSettings visualSettings;
+        private VisualSettings _visualSettings;
 
         [Inject(Id = PoolId.PLAYER_CELLS)]
-        IObjectPool<GameObject> playerCellPool;
+        private IObjectPool<GameObject> _playerCellPool;
         [Inject(Id = PoolId.PLAYER_EXPLOSION)]
-        IObjectPool<GameObject> playerDeathParticlesPool;
+        private IObjectPool<GameObject> _playerDeathParticlesPool;
 
 
         // It's tetromino - so it is 4.
         private const int PLAYER_TETRAMINO_CELL_COUNT = 4;
 
-        PlayerVisuals backComponent;
+        private PlayerVisuals _backComponent;
 
-        private GameObject[] playerCells = new GameObject[PLAYER_TETRAMINO_CELL_COUNT];
+        private readonly GameObject[] _playerCells = new GameObject[PLAYER_TETRAMINO_CELL_COUNT];
 
         private void Awake()
         {
             Setup(
                 this,
-                gameEvents.PlayerTetrominoStream,
-                gameEvents.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
+                _gameEvents.PlayerTetrominoStream,
+                _gameEvents.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
             );
         }
 
@@ -48,19 +48,19 @@ namespace Tetra4bica.Graphics
             IObservable<Unit> gameOverObservable
         )
         {
-            this.backComponent = backComponent;
+            this._backComponent = backComponent;
             playerTetrominoObservable.Subscribe(RenderPlayer);
             gameOverObservable.WithLatestFrom(playerTetrominoObservable, (_, tetromino) => tetromino)
                 .Subscribe(t => _ = animatePlayerDeath(t));
 
-            playerCellPool = backComponent.playerCellPool;
+            _playerCellPool = backComponent._playerCellPool;
             for (int i = 0; i < PLAYER_TETRAMINO_CELL_COUNT; i++)
             {
-                playerCells[i] = playerCellPool.Get();
-                playerCells[i].SetActive(false);
-                SpriteRenderer renderer = playerCells[i].GetComponent<SpriteRenderer>();
+                _playerCells[i] = _playerCellPool.Get();
+                _playerCells[i].SetActive(false);
+                SpriteRenderer renderer = _playerCells[i].GetComponent<SpriteRenderer>();
                 if (renderer != null)
-                { renderer.color = Cells.ToUnityColor(backComponent.gameSettings.PlayerColor); }
+                { renderer.color = Cells.ToUnityColor(backComponent._gameSettings.PlayerColor); }
             }
         }
 
@@ -76,13 +76,13 @@ namespace Tetra4bica.Graphics
                 {
                     break;
                 }
-                GameObject plCellObj = playerCells[playerCellsCounter];
+                GameObject plCellObj = _playerCells[playerCellsCounter];
                 Vector2 cellShift = new Vector2(
-                    plCell.x * backComponent.visualSettings.CellSize,
-                    plCell.y * backComponent.visualSettings.CellSize
+                    plCell.x * _backComponent._visualSettings.CellSize,
+                    plCell.y * _backComponent._visualSettings.CellSize
                 );
                 plCellObj.transform.position =
-                    backComponent.visualSettings.BottomLeftPoint + (Vector3)cellShift;
+                    _backComponent._visualSettings.BottomLeftPoint + (Vector3)cellShift;
                 plCellObj.SetActive(true);
                 playerCellsCounter++;
             }
@@ -90,9 +90,9 @@ namespace Tetra4bica.Graphics
 
         private async Task animatePlayerDeath(PlayerTetromino tetromino)
         {
-            if (backComponent.playerDeathParticlesPool != null)
+            if (_backComponent._playerDeathParticlesPool != null)
             {
-                IObjectPool<GameObject> particlesPool = backComponent.playerDeathParticlesPool;
+                IObjectPool<GameObject> particlesPool = _backComponent._playerDeathParticlesPool;
                 explodePlayerCells(tetromino, particlesPool);
             }
             disableVisuals();
@@ -120,7 +120,7 @@ namespace Tetra4bica.Graphics
 
         private void disableVisuals()
         {
-            foreach (var cell in playerCells)
+            foreach (var cell in _playerCells)
             {
                 cell.SetActive(false);
             }

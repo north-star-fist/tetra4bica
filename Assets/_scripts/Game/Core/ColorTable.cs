@@ -11,26 +11,26 @@ namespace Tetra4bica.Core
     /// <summary> Mutable color cell table. </summary>
     public class ColorTable : IEquatable<ColorTable>
     {
-        public Vector2Int Size => size;
+        public Vector2Int Size => _size;
 
 
-        CellColor?[,] cellsTable;
+        private readonly CellColor?[,] _cellsTable;
 
-        private Vector2Int size;
+        private Vector2Int _size;
 
         /// <summary>
         /// Index of the first column in the cells table. This index is incremented on table scrolls left 
         /// while the whole 2D array of cells stays still.
         /// </summary>
-        int startingX;
+        private int _startingX;
 
         // Array for tempopary storing neighbour cells during calculations.
-        Cell[] neighbourCellsArray = new Cell[Direction.FOUR_DIRECTIONS.Length];
+        private readonly Cell[] _neighbourCellsArray = new Cell[Direction.FOUR_DIRECTIONS.Length];
 
         public ColorTable(Vector2Int size)
         {
-            this.size = size;
-            cellsTable = new CellColor?[size.x, size.y];
+            this._size = size;
+            _cellsTable = new CellColor?[size.x, size.y];
         }
 
         public ColorTable(Vector2Int size, IEnumerable<Cell> cells) : this(size)
@@ -73,14 +73,14 @@ namespace Tetra4bica.Core
         {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
-            cellsTable[shiftedPos.x, shiftedPos.y] = color;
+            _cellsTable[shiftedPos.x, shiftedPos.y] = color;
         }
 
         public void RemoveCell(Vector2Int pos)
         {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
-            cellsTable[shiftedPos.x, shiftedPos.y] = null;
+            _cellsTable[shiftedPos.x, shiftedPos.y] = null;
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Tetra4bica.Core
                     CellColor? col = this[includeCell + dir];
                     if (col.HasValue)
                     {
-                        neighbourCellsArray[neighbourCellsCount++] = new Cell(includeCell + dir, col.Value);
+                        _neighbourCellsArray[neighbourCellsCount++] = new Cell(includeCell + dir, col.Value);
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace Tetra4bica.Core
                 patternsBank,
                 includeCell,
                 matchedCellsBuffer,
-                neighbourCellsArray,
+                _neighbourCellsArray,
                 neighbourCellsCount,
                 out patternColor
             );
@@ -260,7 +260,7 @@ namespace Tetra4bica.Core
 
         public bool Equals(ColorTable other)
         {
-            if (other is null || !size.Equals(other.size))
+            if (other is null || !_size.Equals(other._size))
             {
                 return false;
             }
@@ -306,17 +306,17 @@ namespace Tetra4bica.Core
         private void scrollMapLeft()
         {
             // Moving all cells left by 1 cell.
-            startingX++;
-            if (startingX >= Size.x)
+            _startingX++;
+            if (_startingX >= Size.x)
             {
-                startingX = 0;
+                _startingX = 0;
             }
         }
 
         private CellColor? getColor(Vector2Int cell)
         {
             Vector2Int shiftedPosition = shiftPosition(cell);
-            return cellsTable[shiftedPosition.x, shiftedPosition.y];
+            return _cellsTable[shiftedPosition.x, shiftedPosition.y];
         }
 
         private char colorToCharacter(CellColor? cellColor)
@@ -343,7 +343,7 @@ namespace Tetra4bica.Core
 
         private Vector2Int shiftPosition(Vector2Int position)
         {
-            int shiftedX = (position.x + startingX) % Size.x;
+            int shiftedX = (position.x + _startingX) % Size.x;
             Vector2Int shiftedPosition = v2i(shiftedX, position.y);
             return shiftedPosition;
         }

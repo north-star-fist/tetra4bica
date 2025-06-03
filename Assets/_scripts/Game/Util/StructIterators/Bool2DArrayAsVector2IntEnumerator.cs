@@ -9,27 +9,28 @@ namespace Tetra4bica.Util.StructIterators
     public struct Bool2DArrayAsVector2IntEnumerator : IEnumerator<Vector2Int>
     {
 
-        readonly bool[,] array2D;
+        private readonly bool[,] _array2D;
 
-        readonly Vector2Int size;
+        private readonly Vector2Int _size;
 
-        int currentX; int currentY;
+        private int _currentX;
+        private int _currentY;
 
-        Vector2Int next;
+        private Vector2Int _next;
 
-        bool noNext;
+        private bool _noNext;
 
-        bool movedNextInitially;
+        private bool _movedNextInitially;
 
         public Bool2DArrayAsVector2IntEnumerator(bool[,] array2D)
         {
-            this.array2D = array2D;
-            size = array2D != null ? v2i(array2D.GetLength(0), array2D.GetLength(1)) : Vector2Int.zero;
-            currentX = 0;
-            currentY = 0;
-            next = default;
-            noNext = false;
-            movedNextInitially = false;
+            _array2D = array2D;
+            _size = array2D != null ? v2i(array2D.GetLength(0), array2D.GetLength(1)) : Vector2Int.zero;
+            _currentX = 0;
+            _currentY = 0;
+            _next = default;
+            _noNext = false;
+            _movedNextInitially = false;
         }
 
 
@@ -37,56 +38,56 @@ namespace Tetra4bica.Util.StructIterators
         {
             get
             {
-                return !movedNextInitially || noNext
+                return !_movedNextInitially || _noNext
                     ? throw new InvalidOperationException("No more elements to iterate!")
-                    : next;
+                    : _next;
             }
         }
 
         public bool MoveNext()
         {
-            noNext = !getNext(out next);
-            movedNextInitially = true;
-            if (!noNext)
+            _noNext = !getNext(out _next);
+            _movedNextInitially = true;
+            if (!_noNext)
             {
                 increaseIndices();
             }
-            return !noNext;
+            return !_noNext;
         }
 
         private bool getNext(out Vector2Int next)
         {
             next = default;
-            if (size == Vector2Int.zero || noNext || currentX >= size.x)
+            if (_size == Vector2Int.zero || _noNext || _currentX >= _size.x)
             {
                 return false;
             }
-            bool arrayElement = array2D[currentX, currentY];
+            bool arrayElement = _array2D[_currentX, _currentY];
             while (!arrayElement)
             {
                 if (!increaseIndices())
                 {
                     return false;
                 }
-                arrayElement = array2D[currentX, currentY];
+                arrayElement = _array2D[_currentX, _currentY];
             };
-            next = v2i(currentX, currentY);
+            next = v2i(_currentX, _currentY);
             return true;
         }
 
         private bool increaseIndices()
         {
-            if (currentX >= size.x)
+            if (_currentX >= _size.x)
             {
                 return false;
             }
-            currentY++;
-            if (currentY >= size.y)
+            _currentY++;
+            if (_currentY >= _size.y)
             {
-                currentX++;
-                currentY = 0;
+                _currentX++;
+                _currentY = 0;
             }
-            return currentX < size.x;
+            return _currentX < _size.x;
         }
 
 
@@ -96,11 +97,11 @@ namespace Tetra4bica.Util.StructIterators
 
         void IEnumerator.Reset()
         {
-            currentX = 0;
-            currentY = 0;
-            next = default;
-            noNext = false;
-            movedNextInitially = false;
+            _currentX = 0;
+            _currentY = 0;
+            _next = default;
+            _noNext = false;
+            _movedNextInitially = false;
         }
 
         public void Dispose() { }
@@ -109,18 +110,18 @@ namespace Tetra4bica.Util.StructIterators
     public struct Bool2DArrayAsVector2IntEnumerable : IEnumerable<Vector2Int>
     {
 
-        bool[,] array2D;
+        private readonly bool[,] _array2D;
 
         public Bool2DArrayAsVector2IntEnumerable(bool[,] array2D)
         {
-            this.array2D = array2D;
+            this._array2D = array2D;
         }
 
 
         /// <summary> Public non allocating enumerator. </summary>
         public Bool2DArrayAsVector2IntEnumerator GetEnumerator()
         {
-            return new Bool2DArrayAsVector2IntEnumerator(array2D);
+            return new Bool2DArrayAsVector2IntEnumerator(_array2D);
         }
 
         // private methods for IEnumerable inheritance

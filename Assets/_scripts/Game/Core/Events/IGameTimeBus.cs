@@ -1,5 +1,9 @@
-using UniRx;
+﻿using UniRx;
 
-public interface IGameTimeBus {
-    ISubject<float> FrameUpdatePublisher { get; }
+namespace Tetra4bica.Core
+{
+    public interface IGameTimeBus
+    {
+        ISubject<float> FrameUpdatePublisher { get; }
+    }
 }

@@ -13,9 +13,9 @@ namespace Tetra4bica.Core
 
         public Projectile(Vector2 position, Vector2Int direction)
         {
-            this.Active = true;
-            this.Position = position;
-            this.Direction = direction;
+            Active = true;
+            Position = position;
+            Direction = direction;
         }
     }
 }

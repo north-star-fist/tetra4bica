@@ -9,8 +9,7 @@ using static Sergei.Safonov.Utility.VectorExt;
 public class ColorTableTest
 {
 
-
-    Vector2Int[] matchedCellsBuffer = new Vector2Int[16];
+    private readonly Vector2Int[] _matchedCellsBuffer = new Vector2Int[16];
 
     [Test]
     public void TestEqualsEmpty()
@@ -83,7 +82,7 @@ public class ColorTableTest
         table1.SetCell(Vector2Int.right, CellColor.Yellow);
         table1.SetCell(Vector2Int.up, CellColor.Yellow);
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
@@ -97,7 +96,7 @@ public class ColorTableTest
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
         table1.SetCell(Vector2Int.up * 2, CellColor.Yellow);
         table1.SetCell(Vector2Int.one + Vector2Int.up, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
@@ -111,7 +110,7 @@ public class ColorTableTest
         table1.SetCell(Vector2Int.one, CellColor.Yellow);
         table1.SetCell(Vector2Int.up * 2, CellColor.Yellow);
         table1.SetCell(Vector2Int.one + Vector2Int.up, CellColor.Yellow);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Yellow, pCol);
     }
 
@@ -125,7 +124,7 @@ public class ColorTableTest
         table1.SetCell(Vector2Int.right * 2, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right * 3, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.right * 4, CellColor.PaleBlue);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.PaleBlue, pCol);
     }
 
@@ -138,7 +137,7 @@ public class ColorTableTest
         table1.SetCell(Vector2Int.up * 2, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up * 3, CellColor.PaleBlue);
         table1.SetCell(Vector2Int.up * 4, CellColor.PaleBlue);
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.up, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.up, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.PaleBlue, pCol);
     }
 
@@ -151,7 +150,7 @@ public class ColorTableTest
         table1.SetCell(v2i(2, 1), CellColor.Magenta);
         table1.SetCell(v2i(1, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
@@ -164,7 +163,7 @@ public class ColorTableTest
         table1.SetCell(v2i(2, 1), CellColor.Magenta);
         table1.SetCell(v2i(2, 0), CellColor.Magenta);
 
-        Assert.AreEqual(0, table1.FindPattern(new TetrominoPatterns(), v2i(2, 0), matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(0, table1.FindPattern(new TetrominoPatterns(), v2i(2, 0), _matchedCellsBuffer, out var pCol));
         Assert.IsFalse(pCol.HasValue);
     }
 
@@ -177,7 +176,7 @@ public class ColorTableTest
         table1.SetCell(v2i(1, 2), CellColor.Magenta);
         table1.SetCell(v2i(1, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), Vector2Int.right, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
@@ -190,7 +189,7 @@ public class ColorTableTest
         table1.SetCell(v2i(0, 2), CellColor.Magenta);
         table1.SetCell(v2i(0, 0), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
@@ -203,7 +202,7 @@ public class ColorTableTest
         table1.SetCell(v2i(0, 1), CellColor.Magenta);
         table1.SetCell(v2i(0, 2), CellColor.Magenta);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1), _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Magenta, pCol);
     }
 
@@ -221,7 +220,7 @@ public class ColorTableTest
         Assert.AreEqual(0, table1.FindPattern(
             new TetrominoPatterns(),
             Vector2Int.right,
-            matchedCellsBuffer,
+            _matchedCellsBuffer,
             out var pCol)
         );
         Assert.IsFalse(pCol.HasValue);
@@ -237,7 +236,7 @@ public class ColorTableTest
         table1.SetCell(v2i(2, 1) + shift, CellColor.Orange);
         table1.SetCell(v2i(2, 2) + shift, CellColor.Orange);
 
-        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1) + shift, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(new TetrominoPatterns(), v2i(1, 1) + shift, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Orange, pCol);
     }
 
@@ -257,7 +256,7 @@ public class ColorTableTest
             { true, false, false }
         };
         patterns.Add(CellColor.Orange, MatrixUtil.RotateBy90(l, true));
-        Assert.AreEqual(4, table1.FindPattern(patterns, v2i(0, 1) + shift, matchedCellsBuffer, out var pCol));
+        Assert.AreEqual(4, table1.FindPattern(patterns, v2i(0, 1) + shift, _matchedCellsBuffer, out var pCol));
         Assert.AreEqual(CellColor.Orange, pCol);
     }
 
@@ -348,23 +347,23 @@ public class ColorTableTest
     class TestPatterns : ICellPatterns
     {
 
-        Dictionary<CellColor, bool[,]> patternMap = new Dictionary<CellColor, bool[,]>();
+        private readonly Dictionary<CellColor, bool[,]> _patternMap = new Dictionary<CellColor, bool[,]>();
 
         public TestPatterns() { }
 
         public void Add(CellColor color, bool[,] pattern)
         {
-            patternMap[color] = pattern;
+            _patternMap[color] = pattern;
         }
 
         public IEnumerable<bool[,]> GetPatterns(CellColor color)
         {
-            return new[] { patternMap[color] };
+            return new[] { _patternMap[color] };
         }
 
         CellFragment[] ICellPatterns.GetPatterns(CellColor color)
         {
-            return new CellFragment[] { CellFragment.Fragment(patternMap[color], out var _) };
+            return new CellFragment[] { CellFragment.Fragment(_patternMap[color], out var _) };
         }
     }
 }

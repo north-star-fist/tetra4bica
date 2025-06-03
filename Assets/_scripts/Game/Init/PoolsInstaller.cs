@@ -10,11 +10,11 @@ namespace Tetra4bica.Init
     public class PoolsInstaller : MonoInstaller
     {
         [SerializeField]
-        private PoolIdDescription[] pools;
+        private PoolIdDescription[] _pools;
 
         public override void InstallBindings()
         {
-            foreach (var pool in pools)
+            foreach (var pool in _pools)
             {
                 Container.Bind<IObjectPool<GameObject>>().WithId(pool.PoolId)
                     .FromInstance(PoolManager.GetPoolSingleton(pool.PoolDescription)).AsCached().NonLazy();
@@ -24,13 +24,13 @@ namespace Tetra4bica.Init
         [Serializable]
         public class PoolIdDescription
         {
-            public PoolId PoolId => poolId;
-            public PoolDescriptionAsset PoolDescription => poolDescription;
+            public PoolId PoolId => _poolId;
+            public PoolDescriptionAsset PoolDescription => _poolDescription;
 
             [SerializeField]
-            private PoolId poolId;
+            private PoolId _poolId;
             [SerializeField]
-            private PoolDescriptionAsset poolDescription;
+            private PoolDescriptionAsset _poolDescription;
         }
     }
 }

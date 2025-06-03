@@ -12,29 +12,29 @@ namespace Tetra4bica.UI
     public class GameCanvas : MonoBehaviour
     {
         [Inject]
-        IGameEvents gameLogic;
+        IGameEvents _gameLogic;
 
         [SerializeField]
-        private PhasePredicate[] gamePhases;
+        private PhasePredicate[] _gamePhases;
 
-        Canvas canvas;
+        Canvas _canvas;
 
-        readonly Dictionary<GamePhase, bool> phaseMap = new Dictionary<GamePhase, bool>();
+        readonly Dictionary<GamePhase, bool> _phaseMap = new Dictionary<GamePhase, bool>();
 
         private void Awake()
         {
 
-            foreach (var phase in gamePhases)
+            foreach (var phase in _gamePhases)
             {
-                phaseMap.Add(phase.Phase, phase.Enabled);
+                _phaseMap.Add(phase.Phase, phase.Enabled);
             }
 
-            canvas = GetComponent<Canvas>();
+            _canvas = GetComponent<Canvas>();
 
-            gameLogic.GamePhaseStream.Subscribe(
+            _gameLogic.GamePhaseStream.Subscribe(
                 p =>
                 {
-                    canvas.enabled = phaseMap.TryGetValue(p, out var enabled) && enabled;
+                    _canvas.enabled = _phaseMap.TryGetValue(p, out var enabled) && enabled;
                 }
             );
         }

@@ -10,26 +10,26 @@ namespace Tetra4bica.UI
     {
 
         [SerializeField]
-        private float fadeTime = 1.0f;
+        private float _fadeTime = 1.0f;
 
-        TMP_Text text;
+        TMP_Text _text;
 
-        Tween tween;
+        Tween _tween;
 
         // Start is called before the first frame update
         void Start()
         {
-            text = GetComponent<TMP_Text>();
-            tween = DOTween.To(() => text.alpha, a => text.alpha = a, 0, fadeTime).SetEase(Ease.InOutCirc);
-            tween.SetLoops(-1, LoopType.Yoyo);
-            tween.Play();
+            _text = GetComponent<TMP_Text>();
+            _tween = DOTween.To(() => _text.alpha, a => _text.alpha = a, 0, _fadeTime).SetEase(Ease.InOutCirc);
+            _tween.SetLoops(-1, LoopType.Yoyo);
+            _tween.Play();
         }
 
         private void OnDisable()
         {
-            if (tween != null)
+            if (_tween != null)
             {
-                tween.Kill();
+                _tween.Kill();
             }
         }
     }

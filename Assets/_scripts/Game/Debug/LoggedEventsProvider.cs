@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
@@ -14,41 +15,41 @@ namespace Tetra4bica.Debugging
     {
 
         [SerializeField, Tooltip("Relative path to file in persistent storage")]
-        private string logFilePath;
+        private string _logFilePath;
 
-        override public IObservable<IGameInputEvent> GetInputStream() => input;
+        override public IObservable<IGameInputEvent> GetInputStream() => _input;
 
         const string ON = "On";
         const string OFF = "Off";
 
-        readonly IFormatter formatter = new BinaryFormatter();
+        private readonly IFormatter _formatter = new BinaryFormatter();
 
-        readonly ISubject<IGameInputEvent> input = new Subject<IGameInputEvent>();
+        private readonly ISubject<IGameInputEvent> _input = new Subject<IGameInputEvent>();
 
-        readonly IList<IGameInputEvent> gameEventList = new List<IGameInputEvent>();
+        private readonly IList<IGameInputEvent> _gameEventList = new List<IGameInputEvent>();
 
-        uint frameNumber;
-        int totalFrameNumber;
+        private uint _frameNumber;
+        private int _totalFrameNumber;
 
-        int eventIndex;
-        float actualTime;
-        float loggedTime;
+        private int _eventIndex;
+        private float _actualTime;
+        private float _loggedTime;
 
-        bool autoplay;
+        private bool _autoplay;
 
-        bool error;
+        private bool _error;
 
-        private string goToFrameText;
+        private string _goToFrameText;
 
         private void Awake()
         {
-            if (string.IsNullOrEmpty(logFilePath))
+            if (string.IsNullOrEmpty(_logFilePath))
             {
                 Debug.LogWarning("Event log file path is undefined!");
                 return;
             }
             using (FileStream logFileStream = new FileStream(
-                Application.persistentDataPath + Path.DirectorySeparatorChar + logFilePath,
+                Application.persistentDataPath + Path.DirectorySeparatorChar + _logFilePath,
                 FileMode.Open
             ))
             {
@@ -57,17 +58,17 @@ namespace Tetra4bica.Debugging
                     IGameInputEvent inputEvent = null;
                     do
                     {
-                        var e = formatter.Deserialize(logFileStream);
+                        var e = _formatter.Deserialize(logFileStream);
                         inputEvent = (IGameInputEvent)e;
-                        gameEventList.Add(inputEvent);
+                        _gameEventList.Add(inputEvent);
                         if (inputEvent is FrameUpdateEvent)
                         {
-                            totalFrameNumber++;
+                            _totalFrameNumber++;
                         }
                     } while (logFileStream.Position < logFileStream.Length);
                 } catch
                 {
-                    error = true;
+                    _error = true;
                 }
             }
         }
@@ -75,9 +76,9 @@ namespace Tetra4bica.Debugging
         void OnGUI()
         {
 
-            GUI.Label(new Rect(10, 10, 150, 50), $"Frame {frameNumber.ToString()}");
+            GUI.Label(new Rect(10, 10, 150, 50), $"Frame {_frameNumber.ToString()}");
 
-            if (error)
+            if (_error)
             {
                 return;
             }
@@ -95,40 +96,40 @@ namespace Tetra4bica.Debugging
                 goFurther(100);
             }
 
-            goToFrameText = GUI.TextField(new Rect(10, 250, 110, 50), goToFrameText);
+            _goToFrameText = GUI.TextField(new Rect(10, 250, 110, 50), _goToFrameText);
             if (GUI.Button(new Rect(120, 250, 50, 50), "==>>"))
             {
-                if (uint.TryParse(goToFrameText, out var goToFrame))
+                if (uint.TryParse(_goToFrameText, out var goToFrame))
                 {
-                    if (goToFrame > frameNumber)
+                    if (goToFrame > _frameNumber)
                     {
-                        goFurther(goToFrame - frameNumber);
+                        goFurther(goToFrame - _frameNumber);
                     }
                 }
             }
 
-            var onOff = autoplay ? ON : OFF;
+            var onOff = _autoplay ? ON : OFF;
             if (GUI.Button(new Rect(10, 310, 150, 50), $"Autoplay is {onOff}"))
             {
-                autoplay = !autoplay;
+                _autoplay = !_autoplay;
             }
         }
 
 
         void Update()
         {
-            if (error)
+            if (_error)
             {
                 return;
             }
-            if (frameNumber >= totalFrameNumber || !autoplay)
+            if (_frameNumber >= _totalFrameNumber || !_autoplay)
             {
                 return;
             }
-            actualTime += Time.deltaTime;
-            while (loggedTime < actualTime && frameNumber < totalFrameNumber)
+            _actualTime += Time.deltaTime;
+            while (_loggedTime < _actualTime && _frameNumber < _totalFrameNumber)
             {
-                loggedTime += readFrameEvents();
+                _loggedTime += readFrameEvents();
             }
         }
 
@@ -136,7 +137,7 @@ namespace Tetra4bica.Debugging
 
         private float readFrameEvents()
         {
-            if (frameNumber >= totalFrameNumber || eventIndex >= gameEventList.Count)
+            if (_frameNumber >= _totalFrameNumber || _eventIndex >= _gameEventList.Count)
             {
                 return 0;
             }
@@ -145,16 +146,15 @@ namespace Tetra4bica.Debugging
             FrameUpdateEvent frameEvent = null;
             do
             {
-                var e = gameEventList[eventIndex];
-                inputEvent = (IGameInputEvent)e;
-                input.OnNext(inputEvent);
+                inputEvent = _gameEventList[_eventIndex];
+                _input.OnNext(inputEvent);
                 frameEvent = inputEvent as FrameUpdateEvent;
-                eventIndex++;
-            } while (frameEvent == null && eventIndex < gameEventList.Count);
+                _eventIndex++;
+            } while (frameEvent == null && _eventIndex < _gameEventList.Count);
             if (frameEvent != null)
             {
                 delta = frameEvent.DeltaTime;
-                frameNumber++;
+                _frameNumber++;
             }
             return delta;
         }

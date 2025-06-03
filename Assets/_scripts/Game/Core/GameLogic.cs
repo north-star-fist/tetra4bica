@@ -20,81 +20,81 @@ namespace Tetra4bica.Core
     [ZenjectAllowDuringValidation]
     public class GameLogic : IGameEvents
     {
-        public GameState GameState => gameState;
+        public GameState GameState => _gameState;
 
-        private GameSettings gameSettings;
-        private ICellPatterns cellPatterns;
-        private ICellGenerator cellGenerator;
-        private GameState gameState;
+        private GameSettings _gameSettings;
+        private readonly ICellPatterns _cellPatterns;
+        private readonly ICellGenerator _cellGenerator;
+        private GameState _gameState;
 
         #region Game event streams
-        private IObservable<float> frameUpdateStream;
-        public IObservable<float> FrameUpdateStream => frameUpdateStream;
+        private readonly IObservable<float> _frameUpdateStream;
+        public IObservable<float> FrameUpdateStream => _frameUpdateStream;
 
-        IObservable<IEnumerable<CellColor?>> tableScrollStream;
+        private readonly IObservable<IEnumerable<CellColor?>> _tableScrollStream;
         /// <summary>
         /// Scrolls game table cells left for one column passing new the most right column of the table.
         /// </summary>
-        public IObservable<IEnumerable<CellColor?>> TableScrollStream => tableScrollStream;
+        public IObservable<IEnumerable<CellColor?>> TableScrollStream => _tableScrollStream;
 
-        private Subject<Vector2Int> gameStartedStream = new Subject<Vector2Int>();
-        public IObservable<Vector2Int> GameStartedStream => gameStartedStream.AsObservable();
+        private readonly Subject<Vector2Int> _gameStartedStream = new Subject<Vector2Int>();
+        public IObservable<Vector2Int> GameStartedStream => _gameStartedStream.AsObservable();
 
-        private Subject<Cell> newCellStream = new Subject<Cell>();
-        public IObservable<Cell> NewCellStream => newCellStream.AsObservable();
+        private readonly Subject<Cell> _newCellStream = new Subject<Cell>();
+        public IObservable<Cell> NewCellStream => _newCellStream.AsObservable();
 
-        private Subject<PlayerTetromino> playerTetrominoStream = new Subject<PlayerTetromino>();
-        public IObservable<PlayerTetromino> PlayerTetrominoStream => playerTetrominoStream.AsObservable();
+        private readonly Subject<PlayerTetromino> _playerTetrominoStream = new Subject<PlayerTetromino>();
+        public IObservable<PlayerTetromino> PlayerTetrominoStream => _playerTetrominoStream.AsObservable();
 
-        private Subject<Vector2Int> shotStream = new Subject<Vector2Int>();
-        public IObservable<Vector2Int> ShotStream => shotStream.AsObservable();
+        private readonly Subject<Vector2Int> _shotStream = new Subject<Vector2Int>();
+        public IObservable<Vector2Int> ShotStream => _shotStream.AsObservable();
 
-        private Subject<bool> rotationStream = new Subject<bool>();
-        public IObservable<bool> RotationStream => rotationStream.AsObservable();
+        private readonly Subject<bool> _rotationStream = new Subject<bool>();
+        public IObservable<bool> RotationStream => _rotationStream.AsObservable();
 
-        private Subject<Cell> eliminatedBricksStream = new Subject<Cell>();
-        public IObservable<Cell> EliminatedBricksStream => eliminatedBricksStream.AsObservable();
+        private readonly Subject<Cell> _eliminatedBricksStream = new Subject<Cell>();
+        public IObservable<Cell> EliminatedBricksStream => _eliminatedBricksStream.AsObservable();
 
-        private Subject<Vector2> projectileCoordinatesStream = new Subject<Vector2>();
-        public IObservable<Vector2> ProjectileCoordinatesStream => projectileCoordinatesStream;
+        private readonly Subject<Vector2> _projectileCoordinatesStream = new Subject<Vector2>();
+        public IObservable<Vector2> ProjectileCoordinatesStream => _projectileCoordinatesStream;
 
-        private Subject<Vector2Int> frozenProjectilesStream = new Subject<Vector2Int>();
-        public IObservable<Vector2Int> FrozenProjectilesStream => frozenProjectilesStream;
+        private readonly Subject<Vector2Int> _frozenProjectilesStream = new Subject<Vector2Int>();
+        public IObservable<Vector2Int> FrozenProjectilesStream => _frozenProjectilesStream;
 
-        private Subject<uint> scoreStream = new Subject<uint>();
-        public IObservable<uint> ScoreStream => scoreStream;
+        private readonly Subject<uint> _scoreStream = new Subject<uint>();
+        public IObservable<uint> ScoreStream => _scoreStream;
 
-        private Subject<GamePhase> gamePhaseStream = new Subject<GamePhase>();
-        public IObservable<GamePhase> GamePhaseStream => gamePhaseStream;
+        private readonly Subject<GamePhase> _gamePhaseStream = new Subject<GamePhase>();
+        public IObservable<GamePhase> GamePhaseStream => _gamePhaseStream;
 
         #endregion
 
-        IGameInputBus playerInputBus = new GameInputStreams();
-        IGameTimeBus timeEventsBus = new TimeEventBus();
+        private readonly IGameInputBus _playerInputBus = new GameInputStreams();
+        private readonly IGameTimeBus _timeEventsBus = new TimeEventBus();
 
         // Private inner streams
         /// <summary> Frozen projectiles inner stream. </summary>
-        Subject<Vector2Int> frozenProjectilesInnerStream = new Subject<Vector2Int>();
+        private readonly Subject<Vector2Int> _frozenProjectilesInnerStream = new Subject<Vector2Int>();
         // The stream of events when the whole wall shouldbeeliminated. Need to be combined with frame stream to
         // eliminate wall when it isupdated on UI.
-        Subject<(int, Vector2Int)> wallEliminationStream = new Subject<(int, Vector2Int)>();
+        private readonly Subject<(int, Vector2Int)> _wallEliminationStream = new Subject<(int, Vector2Int)>();
 
         // Buffer for holding cells that match some pattern.
         // Assuming there is no cell patterns with more than 16 cells area.
-        Vector2Int[] matchedCellsBuffer = new Vector2Int[16];
+        private readonly Vector2Int[] _matchedCellsBuffer = new Vector2Int[16];
 
         // Buffer for new wall cells.
-        CellColor?[] wallSpawnBuffer;
+        private readonly CellColor?[] _wallSpawnBuffer;
 
         // Buffer array for finding colorislands
         // (used for counting cells in color region for making new cell color decision)
-        bool[,] islandsBuffer;
+        bool[,] _islandsBuffer;
 
         // Array for tempopary storing neighbour cells during calculations.
-        Cell[] neighbourCellsArray = new Cell[Direction.FOUR_DIRECTIONS.Length];
+        private readonly Cell[] _neighbourCellsArray = new Cell[Direction.FOUR_DIRECTIONS.Length];
 
         // Not to record game over before event that bring us here waiting for one frame
-        private bool handleGameOverNextFrame;
+        private bool _handleGameOverNextFrame;
 
         public struct GameSettings
         {
@@ -140,15 +140,15 @@ namespace Tetra4bica.Core
             ICellGenerator cellGenerator
         )
         {
-            this.gameSettings = gameSettings;
-            this.cellPatterns = tetraminoPatterns;
-            this.cellGenerator = cellGenerator;
-            wallSpawnBuffer = new CellColor?[gameSettings.MapHeight];
+            this._gameSettings = gameSettings;
+            this._cellPatterns = tetraminoPatterns;
+            this._cellGenerator = cellGenerator;
+            _wallSpawnBuffer = new CellColor?[gameSettings.MapHeight];
 
-            frameUpdateStream = timeEventsBus.FrameUpdatePublisher;
+            _frameUpdateStream = _timeEventsBus.FrameUpdatePublisher;
 
-            IObservable<int> scrollStepStream = frameUpdateStream
-                .Where(_ => gameState.GamePhase is not GamePhase.Paused and not GamePhase.NotStarted)
+            IObservable<int> scrollStepStream = _frameUpdateStream
+                .Where(_ => _gameState.GamePhase is not GamePhase.Paused and not GamePhase.NotStarted)
                 .Scan((acc, delta) => acc + delta)
                 .Select(time => (int)(time / gameSettings.ScrollTimeStep))
                 .DistinctUntilChanged()
@@ -158,22 +158,22 @@ namespace Tetra4bica.Core
                 .SelectMany(stepsWithDelta => Enumerable.Range(stepsWithDelta.Item1 - stepsWithDelta.Item2, stepsWithDelta.Item2));
             // Making TableScrollStream connectable Observable not to repeat side effects for each subscriber
             // (as new column generation).
-            tableScrollStream = scrollStepStream
-                .Do(_ => this.cellGenerator.GenerateCells(wallSpawnBuffer))
-                .Select(steps => wallSpawnBuffer).Share();
+            _tableScrollStream = scrollStepStream
+                .Do(_ => this._cellGenerator.GenerateCells(_wallSpawnBuffer))
+                .Select(steps => _wallSpawnBuffer).Share();
 
-            inputEventProvider.GetInputStream().Subscribe(e => e.Apply(timeEventsBus, playerInputBus));
+            inputEventProvider.GetInputStream().Subscribe(e => e.Apply(_timeEventsBus, _playerInputBus));
 
-            frameUpdateStream.Where(_ => gameState.GamePhase is not GamePhase.Paused or GamePhase.NotStarted)
+            _frameUpdateStream.Where(_ => _gameState.GamePhase is not GamePhase.Paused or GamePhase.NotStarted)
                 .Subscribe(deltaTime =>
                 {
                     handleProjectiles(deltaTime);
                 });
-            frameUpdateStream.Subscribe(_ =>
+            _frameUpdateStream.Subscribe(_ =>
             {
-                if (handleGameOverNextFrame)
+                if (_handleGameOverNextFrame)
                 {
-                    handleGameOverNextFrame = false;
+                    _handleGameOverNextFrame = false;
                     handleGameOver();
                 }
             });
@@ -187,18 +187,18 @@ namespace Tetra4bica.Core
 
             // Running elimination of wall on the following frame update because when table scrolls onto player tetramino
             // View should be updated first, and then exploded
-            wallEliminationStream.SelectMany(
-                wData => frameUpdateStream.First().Select(_ => wData))
+            _wallEliminationStream.SelectMany(
+                wData => _frameUpdateStream.First().Select(_ => wData))
                 .Subscribe(tpl => eliminateWall(tpl.Item1, tpl.Item2));
 
-            playerInputBus.PlayerMovementStream.Subscribe(movePlayer);
-            playerInputBus.PlayerRotateStream.Subscribe(handleRotation);
-            playerInputBus.PlayerShotStream.Subscribe(_ => handleShot());
+            _playerInputBus.PlayerMovementStream.Subscribe(movePlayer);
+            _playerInputBus.PlayerRotateStream.Subscribe(handleRotation);
+            _playerInputBus.PlayerShotStream.Subscribe(_ => handleShot());
 
-            frozenProjectilesInnerStream.Subscribe(handleNewCell);
-            playerInputBus.GameStartStream
+            _frozenProjectilesInnerStream.Subscribe(handleNewCell);
+            _playerInputBus.GameStartStream
             .Subscribe(tableSize => SetPhase(GamePhase.Started));
-            playerInputBus.GamePauseResumeStream.Subscribe(
+            _playerInputBus.GamePauseResumeStream.Subscribe(
                 paused => SetPhase(paused ? GamePhase.Paused : GamePhase.Started)
             );
 
@@ -210,20 +210,20 @@ namespace Tetra4bica.Core
         /// <returns>old phase</returns>
         GamePhase SetPhase(GamePhase gamePhase)
         {
-            var oldPhase = gameState.GamePhase;
+            var oldPhase = _gameState.GamePhase;
             if (gamePhase == GamePhase.Started)
             {
-                if (gameState.GamePhase is GamePhase.NotStarted or GamePhase.GameOver)
+                if (_gameState.GamePhase is GamePhase.NotStarted or GamePhase.GameOver)
                 {
                     StartNewGame();
                 }
-                else if (gameState.GamePhase is GamePhase.Paused)
+                else if (_gameState.GamePhase is GamePhase.Paused)
                 {
                     // unpause
                 }
             }
-            gameState.SetGamePhase(gamePhase);
-            gamePhaseStream.OnNext(gamePhase);
+            _gameState.SetGamePhase(gamePhase);
+            _gamePhaseStream.OnNext(gamePhase);
             //Debug.Log($"Switching {oldPhase} to {gamePhase}");
             return oldPhase;
         }
@@ -231,22 +231,22 @@ namespace Tetra4bica.Core
         void StartNewGame()
         {
             resetGameState();
-            islandsBuffer = new bool[gameSettings.MapWidth, gameSettings.MapHeight];
-            gameStartedStream.OnNext(new Vector2Int(gameSettings.MapWidth, gameSettings.MapHeight));
-            playerTetrominoStream.OnNext(gameState.PlayerTetromino);
+            _islandsBuffer = new bool[_gameSettings.MapWidth, _gameSettings.MapHeight];
+            _gameStartedStream.OnNext(new Vector2Int(_gameSettings.MapWidth, _gameSettings.MapHeight));
+            _playerTetrominoStream.OnNext(_gameState.PlayerTetromino);
         }
 
         void scrollBricks(IEnumerable<CellColor?> newWall)
         {
-            if (gameState.GamePhase is not GamePhase.GameOver)
+            if (_gameState.GamePhase is not GamePhase.GameOver)
             {
-                if (!checkPlayerTetrominoCollisions(gameState.PlayerTetromino, Vector2Int.right)
+                if (!checkPlayerTetrominoCollisions(_gameState.PlayerTetromino, Vector2Int.right)
                     || isNewColumnCollidingPlayer(newWall))
                 {
                     handleGameOver();
                 }
             }
-            gameState.GameTable.ScrollLeft(newWall);
+            _gameState.GameTable.ScrollLeft(newWall);
 
             bool isNewColumnCollidingPlayer(IEnumerable<CellColor?> newWall)
             {
@@ -254,7 +254,7 @@ namespace Tetra4bica.Core
                 foreach (CellColor? cellColor in newWall)
                 {
                     if (cellColor.HasValue
-                        && gameState.PlayerTetromino.Contains(v2i(gameState.GameTable.Size.x - 1, y))
+                        && _gameState.PlayerTetromino.Contains(v2i(_gameState.GameTable.Size.x - 1, y))
                     )
                     {
                         return true;
@@ -267,46 +267,46 @@ namespace Tetra4bica.Core
 
         private void resetGameState()
         {
-            gameState = new GameState(
-                new PlayerTetromino(gameSettings.PlayerStartPosition, gameSettings.PlayerColor),
+            _gameState = new GameState(
+                new PlayerTetromino(_gameSettings.PlayerStartPosition, _gameSettings.PlayerColor),
                 // Doubled quantity of table cells should be enough for keeping all particles on the screen
-                new Projectile[gameSettings.MapWidth * gameSettings.MapHeight * 2],
+                new Projectile[_gameSettings.MapWidth * _gameSettings.MapHeight * 2],
                 GamePhase.NotStarted,
-                new ColorTable(v2i(gameSettings.MapWidth, gameSettings.MapHeight))
+                new ColorTable(v2i(_gameSettings.MapWidth, _gameSettings.MapHeight))
             );
         }
 
         void movePlayer(MovementInput input)
         {
-            if (gameState.GamePhase is not GamePhase.Started)
+            if (_gameState.GamePhase is not GamePhase.Started)
             { return; }
 
             Vector2Int dir = getMoveDirection(input);
-            if (!checkPlayerTetrominoCollisions(gameState.PlayerTetromino, dir))
+            if (!checkPlayerTetrominoCollisions(_gameState.PlayerTetromino, dir))
             {
-                handleGameOverNextFrame = true;
+                _handleGameOverNextFrame = true;
                 return;
             }
-            gameState.SetPlayerTetromino(gameState.PlayerTetromino.WithPosition(calculateNewPlayerPosition(dir)));
-            playerTetrominoStream.OnNext(gameState.PlayerTetromino);
+            _gameState.SetPlayerTetromino(_gameState.PlayerTetromino.WithPosition(calculateNewPlayerPosition(dir)));
+            _playerTetrominoStream.OnNext(_gameState.PlayerTetromino);
             checkWallsAroundPlayerTetramino();
         }
 
         private void handleRotation(bool clockwise)
         {
-            if (gameState.GamePhase is not GamePhase.Started)
+            if (_gameState.GamePhase is not GamePhase.Started)
             { return; }
 
-            PlayerTetromino rotatedTetramino = gameState.PlayerTetromino.Rotate(clockwise);
+            PlayerTetromino rotatedTetramino = _gameState.PlayerTetromino.Rotate(clockwise);
             rotatedTetramino = fixPositionAfterRotation(rotatedTetramino);
             if (!checkPlayerTetrominoCollisions(rotatedTetramino))
             {
-                handleGameOverNextFrame = true;
+                _handleGameOverNextFrame = true;
                 return;
             }
-            gameState.SetPlayerTetromino(rotatedTetramino);
-            playerTetrominoStream.OnNext(gameState.PlayerTetromino);
-            rotationStream.OnNext(clockwise);
+            _gameState.SetPlayerTetromino(rotatedTetramino);
+            _playerTetrominoStream.OnNext(_gameState.PlayerTetromino);
+            _rotationStream.OnNext(clockwise);
 
             // Arranges tetramino position if it exeeded map bounds after rotation
             PlayerTetromino fixPositionAfterRotation(PlayerTetromino tetramino)
@@ -314,8 +314,8 @@ namespace Tetra4bica.Core
                 var size = tetramino.Size;
                 var position = tetramino.Position;
                 Vector2Int fixedPosition = new Vector2Int(
-                    Mathf.Clamp(position.x, 0, gameState.GameTable.Size.x - size.x),
-                    Mathf.Clamp(position.y, 0, gameState.GameTable.Size.y - size.y)
+                    Mathf.Clamp(position.x, 0, _gameState.GameTable.Size.x - size.x),
+                    Mathf.Clamp(position.y, 0, _gameState.GameTable.Size.y - size.y)
                 );
                 return tetramino.WithPosition(fixedPosition);
             }
@@ -323,47 +323,47 @@ namespace Tetra4bica.Core
 
         private void handleShot()
         {
-            if (gameState.GamePhase is not GamePhase.Started)
+            if (_gameState.GamePhase is not GamePhase.Started)
             { return; }
 
-            shotStream.OnNext(gameState.PlayerTetromino.Direction);
+            _shotStream.OnNext(_gameState.PlayerTetromino.Direction);
 
-            Vector2Int projectileStartPosition = gameState.PlayerTetromino.Position
-                + gameState.PlayerTetromino.Muzzle;
+            Vector2Int projectileStartPosition = _gameState.PlayerTetromino.Position
+                + _gameState.PlayerTetromino.Muzzle;
 
             if (
                 !isOutOfMapBounds(projectileStartPosition)
-                && !gameState.GameTable[projectileStartPosition].HasValue
+                && !_gameState.GameTable[projectileStartPosition].HasValue
             )
             {
-                gameState.IncNextProjectileInd();
-                gameState.Projectiles[gameState.NextProjectileInd] =
-                    new Projectile(projectileStartPosition, gameState.PlayerTetromino.Direction);
-                if (gameState.NextProjectileInd >= gameState.Projectiles.Length)
+                _gameState.IncNextProjectileInd();
+                _gameState.Projectiles[_gameState.NextProjectileInd] =
+                    new Projectile(projectileStartPosition, _gameState.PlayerTetromino.Direction);
+                if (_gameState.NextProjectileInd >= _gameState.Projectiles.Length)
                 {
-                    gameState.ResetNextProjectileInd();
+                    _gameState.ResetNextProjectileInd();
                 }
             }
         }
 
         void handleProjectiles(float deltaTime)
         {
-            if (gameState.GamePhase is GamePhase.Paused)
+            if (_gameState.GamePhase is GamePhase.Paused)
             { return; }
 
-            for (int i = 0; i < gameState.Projectiles.Length; i++)
+            for (int i = 0; i < _gameState.Projectiles.Length; i++)
             {
-                Projectile projectile = gameState.Projectiles[i];
+                Projectile projectile = _gameState.Projectiles[i];
                 if (projectile.Active)
                 {
-                    bool flewAway = gameSettings.ProjectilesCollideMapBounds
+                    bool flewAway = _gameSettings.ProjectilesCollideMapBounds
                         ? isOutOfHorizontalMapBounds(projectile.Position.x)
                         : isOutOfMapBounds(projectile.Position);
                     if (!flewAway)
                     {
                         if (shouldBeFrozen(projectile, deltaTime, out Vector2Int landPosition))
                         {
-                            frozenProjectilesInnerStream.OnNext(landPosition);
+                            _frozenProjectilesInnerStream.OnNext(landPosition);
                             projectile.Active = false;
                         }
                     }
@@ -374,11 +374,11 @@ namespace Tetra4bica.Core
                     if (projectile.Active)
                     { //still
                         projectile.Position = projectile.Position
-                            + projectile.Direction.toVector2() * gameSettings.ProjectileSpeed * deltaTime;
-                        projectileCoordinatesStream.OnNext(projectile.Position);
+                            + projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
+                        _projectileCoordinatesStream.OnNext(projectile.Position);
                     }
                     // Writing updated projectile back to the array
-                    gameState.Projectiles[i] = projectile;
+                    _gameState.Projectiles[i] = projectile;
                 }
             }
         }
@@ -388,7 +388,7 @@ namespace Tetra4bica.Core
             landPosition = default;
             // checking integer position
             Vector2Int intPos = projectile.Position.toVector2Int();
-            if ((gameSettings.ProjectilesCollideMapBounds && isOutOfHorizontalMapBounds(intPos.x))
+            if ((_gameSettings.ProjectilesCollideMapBounds && isOutOfHorizontalMapBounds(intPos.x))
                 || isOutOfMapBounds(intPos)
             )
             {
@@ -399,12 +399,12 @@ namespace Tetra4bica.Core
             // If The prijectile is already above occupied cell then backpress the projectile back to freeze it in 
             // free space. During backpressing we should check does the projectile collides with the player tetromino
             // itself. In this case player tetromino goes down (game over)
-            if (gameState.GameTable[projectile.Position.toVector2Int()].HasValue)
+            if (_gameState.GameTable[projectile.Position.toVector2Int()].HasValue)
             {
                 // projectile cell is occupied already. Projectile should be backpressured
                 return backPressureProjectile(projectile, out landPosition);
             }
-            var farthestPosition = projectile.Position + projectile.Direction.toVector2() * gameSettings.ProjectileSpeed * deltaTime;
+            var farthestPosition = projectile.Position + projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
             Vector2Int posDelta = (farthestPosition - projectile.Position.toVector2Int()).toVector2Int();
             for (int passedCells = 0; (passedCells * projectile.Direction).sqrMagnitude <= posDelta.sqrMagnitude; passedCells++)
             {
@@ -421,7 +421,7 @@ namespace Tetra4bica.Core
             {
                 landPosition = newPosition;
                 // Check rubberish neighbours
-                if (gameSettings.LateralBricksStopProjectiles &&
+                if (_gameSettings.LateralBricksStopProjectiles &&
                     (checkNeighbourCell(newPosition, Vector2Int.left)
                     || checkNeighbourCell(newPosition, Vector2Int.right)
                     || checkNeighbourCell(newPosition, Vector2Int.down)
@@ -442,11 +442,11 @@ namespace Tetra4bica.Core
                 {
                     var coordinates = roundedProjectilePosition + shift;
                     return !isOutOfMapBounds(coordinates)
-                        && gameState.GameTable[coordinates.x, coordinates.y].HasValue;
+                        && _gameState.GameTable[coordinates.x, coordinates.y].HasValue;
                 }
 
                 bool stoppedByMapBounds(Vector2Int destinationCoordinates)
-                    => gameSettings.ProjectilesCollideMapBounds
+                    => _gameSettings.ProjectilesCollideMapBounds
                     && isOutOfVerticalMapBounds(destinationCoordinates.y);
             }
 
@@ -455,7 +455,7 @@ namespace Tetra4bica.Core
                 var initProjPos = projectile.Position.toVector2Int();
                 landPosition = initProjPos;
                 Vector2Int newPos = initProjPos - projectile.Direction;
-                while (gameState.GameTable[newPos].HasValue)
+                while (_gameState.GameTable[newPos].HasValue)
                 {
                     if (isOutOfMapBounds(newPos))
                     {
@@ -473,10 +473,10 @@ namespace Tetra4bica.Core
         /// </summary>
         void checkWallsAroundPlayerTetramino()
         {
-            if (gameState.GamePhase is not GamePhase.Started)
+            if (_gameState.GamePhase is not GamePhase.Started)
             { return; }
-            var playerPos = gameState.PlayerTetromino.Position.x;
-            for (int locX = 0; locX < gameState.PlayerTetromino.Size.x; locX++)
+            var playerPos = _gameState.PlayerTetromino.Position.x;
+            for (int locX = 0; locX < _gameState.PlayerTetromino.Size.x; locX++)
             {
                 sendWallToDestructionIfItsFilled(playerPos + locX, -Vector2Int.one);
             }
@@ -484,15 +484,15 @@ namespace Tetra4bica.Core
 
         void handleGameOver()
         {
-            if (gameState.GamePhase is not GamePhase.GameOver)
+            if (_gameState.GamePhase is not GamePhase.GameOver)
             {
                 // Transforming player tetromino to game table cells
-                foreach (var plCell in gameState.PlayerTetromino)
+                foreach (var plCell in _gameState.PlayerTetromino)
                 {
-                    if (!gameState.GameTable[plCell].HasValue)
+                    if (!_gameState.GameTable[plCell].HasValue)
                     {
-                        gameState.GameTable[plCell] = gameState.PlayerTetromino.Color;
-                        newCellStream.OnNext(new Cell(plCell, gameState.PlayerTetromino.Color));
+                        _gameState.GameTable[plCell] = _gameState.PlayerTetromino.Color;
+                        _newCellStream.OnNext(new Cell(plCell, _gameState.PlayerTetromino.Color));
                     }
                 }
 
@@ -503,8 +503,8 @@ namespace Tetra4bica.Core
         private void handleNewCell(Vector2Int newCellCoordinates)
         {
             // check that new cell does not collide with player's tetromino
-            if (gameState.GamePhase is not GamePhase.GameOver
-                && gameState.PlayerTetromino.Contains(newCellCoordinates)
+            if (_gameState.GamePhase is not GamePhase.GameOver
+                && _gameState.PlayerTetromino.Contains(newCellCoordinates)
             )
             {
                 // Boom
@@ -517,35 +517,35 @@ namespace Tetra4bica.Core
                 // The wall was eliminated. Nothing to do any more
                 return;
             }
-            if (gameState.GamePhase is GamePhase.GameOver)
+            if (_gameState.GamePhase is GamePhase.GameOver)
             {
                 // Freezing projectiles on game over. no matter what color it should be
-                newCellStream.OnNext(new Cell(newCellCoordinates, gameSettings.FrozenProjectileColor));
-                frozenProjectilesStream.OnNext(newCellCoordinates);
+                _newCellStream.OnNext(new Cell(newCellCoordinates, _gameSettings.FrozenProjectileColor));
+                _frozenProjectilesStream.OnNext(newCellCoordinates);
                 return;
             }
             uint matchedCellsCount = addCellOfProperColorIfNoMatch(
                 newCellCoordinates,
-                cellPatterns,
+                _cellPatterns,
                 (ColorTable table, CellColor color, Vector2Int neighbourCell)
                     => calculateColorScore(table, color, neighbourCell),
-                gameSettings.FrozenProjectileColor,
-                matchedCellsBuffer,
+                _gameSettings.FrozenProjectileColor,
+                _matchedCellsBuffer,
                 out CellColor? patternColor
             );
             if (matchedCellsCount > 0)
             {
                 for (int i = 0; i < matchedCellsCount; i++)
                 {
-                    eliminateCell(new Cell(matchedCellsBuffer[i], patternColor.Value));
+                    eliminateCell(new Cell(_matchedCellsBuffer[i], patternColor.Value));
                 }
             }
             else
             {
                 // We added the cell into the table above, so it must have some color
-                var newCellColor = gameState.GameTable[newCellCoordinates].Value;
-                newCellStream.OnNext(new Cell(newCellCoordinates, newCellColor));
-                frozenProjectilesStream.OnNext(newCellCoordinates);
+                var newCellColor = _gameState.GameTable[newCellCoordinates].Value;
+                _newCellStream.OnNext(new Cell(newCellCoordinates, newCellColor));
+                _frozenProjectilesStream.OnNext(newCellCoordinates);
             }
         }
 
@@ -563,16 +563,16 @@ namespace Tetra4bica.Core
             {
                 if (!isOutOfMapBounds(cellPos + dir))
                 {
-                    CellColor? col = gameState.GameTable[cellPos + dir];
+                    CellColor? col = _gameState.GameTable[cellPos + dir];
                     if (col.HasValue)
                     {
-                        neighbourCellsArray[neighbourCellsCount++] = new Cell(cellPos + dir, col.Value);
+                        _neighbourCellsArray[neighbourCellsCount++] = new Cell(cellPos + dir, col.Value);
                     }
                 }
             }
 
-            uint matched = gameState.GameTable.FindPattern(
-                cellPatterns, cellPos, matchedCellsBuffer, neighbourCellsArray, neighbourCellsCount, out patternColor
+            uint matched = _gameState.GameTable.FindPattern(
+                cellPatterns, cellPos, matchedCellsBuffer, _neighbourCellsArray, neighbourCellsCount, out patternColor
             );
             if (matched > 0)
             {
@@ -581,9 +581,9 @@ namespace Tetra4bica.Core
             }
 
             // No pattern match, making decision what color should new cell have
-            if (neighbourCellsArray.Length == 0)
+            if (_neighbourCellsArray.Length == 0)
             {
-                gameState.GameTable[cellPos] = defaultColor;
+                _gameState.GameTable[cellPos] = defaultColor;
                 return 0;
             }
             uint maxScore = 0;
@@ -594,7 +594,7 @@ namespace Tetra4bica.Core
                 Cell singleNeighbour = default;
                 for (int i = 0; i < neighbourCellsCount; i++)
                 {
-                    var neighbour = neighbourCellsArray[i];
+                    var neighbour = _neighbourCellsArray[i];
                     if (color == neighbour.Color)
                     {
                         sameColorCounter++;
@@ -605,7 +605,7 @@ namespace Tetra4bica.Core
                 if (sameColorCounter > 1)
                 {
                     // connect two samecoloured neighbour cells with the thitd andgo back
-                    gameState.GameTable[cellPos] = color;
+                    _gameState.GameTable[cellPos] = color;
                     return 0;
                 }
                 else if (sameColorCounter == 1)
@@ -613,7 +613,7 @@ namespace Tetra4bica.Core
                     // more than one cell
 
 
-                    uint score = calculateColorScore(gameState.GameTable, color, singleNeighbour.Position);
+                    uint score = calculateColorScore(_gameState.GameTable, color, singleNeighbour.Position);
                     if (score > maxScore)
                     {
                         maxScore = score;
@@ -622,7 +622,7 @@ namespace Tetra4bica.Core
                 }
             }
 
-            gameState.GameTable[cellPos] = colorWinner;
+            _gameState.GameTable[cellPos] = colorWinner;
             return 0;
         }
 
@@ -633,11 +633,11 @@ namespace Tetra4bica.Core
             {
                 for (int y = 0; y < table.Size.y; y++)
                 {
-                    islandsBuffer[x, y] = false;
+                    _islandsBuffer[x, y] = false;
                 }
             }
 
-            return CountConnectedCells(table, color, neighbourCell, islandsBuffer);
+            return CountConnectedCells(table, color, neighbourCell, _islandsBuffer);
         }
 
         public static uint CountConnectedCells(
@@ -695,14 +695,14 @@ namespace Tetra4bica.Core
 
         private bool sendWallToDestructionIfItsFilled(int wallX, Vector2Int withProjectile)
         {
-            var plCells = gameState.PlayerTetromino.GetVerticalCells(wallX);
+            var plCells = _gameState.PlayerTetromino.GetVerticalCells(wallX);
             // Compare buffered wall and new wall
             bool shouldBeEliminated = true;
-            for (int y = 0; y < gameState.GameTable.Size.y; ++y)
+            for (int y = 0; y < _gameState.GameTable.Size.y; ++y)
             {
                 if (
                     v2i(wallX, y) != withProjectile
-                    && !gameState.GameTable[wallX, y].HasValue
+                    && !_gameState.GameTable[wallX, y].HasValue
                     && !plCells.Contains(v2i(wallX, y))
                 )
                 {
@@ -712,23 +712,23 @@ namespace Tetra4bica.Core
             }
             if (shouldBeEliminated)
             {
-                wallEliminationStream.OnNext((wallX, withProjectile));
+                _wallEliminationStream.OnNext((wallX, withProjectile));
             }
             return shouldBeEliminated;
         }
 
         private void eliminateWall(int wallX, Vector2Int withProjectile)
         {
-            var plCells = gameState.PlayerTetromino.GetVerticalCells(wallX);
+            var plCells = _gameState.PlayerTetromino.GetVerticalCells(wallX);
             // blocks destruction
-            for (int y = 0; y < gameState.GameTable.Size.y; y++)
+            for (int y = 0; y < _gameState.GameTable.Size.y; y++)
             {
                 var pos = v2i(wallX, y);
                 if (!plCells.Contains(new Vector2Int(wallX, y)) || pos == withProjectile)
                 {
                     CellColor? cellColor = pos != withProjectile
-                        ? gameState.GameTable[pos]
-                        : gameSettings.FrozenProjectileColor;
+                        ? _gameState.GameTable[pos]
+                        : _gameSettings.FrozenProjectileColor;
                     if (cellColor.HasValue)
                     {
                         eliminateCell(new Cell(pos, cellColor.Value));
@@ -743,18 +743,18 @@ namespace Tetra4bica.Core
 
         private void eliminateCell(Cell cell)
         {
-            gameState.GameTable.RemoveCell(cell.Position);
-            eliminatedBricksStream.OnNext(cell);
-            gameState.IncScore();
-            scoreStream.OnNext(gameState.Scores);
+            _gameState.GameTable.RemoveCell(cell.Position);
+            _eliminatedBricksStream.OnNext(cell);
+            _gameState.IncScore();
+            _scoreStream.OnNext(_gameState.Scores);
         }
 
         private Vector2Int calculateNewPlayerPosition(Vector2Int moveDir)
         {
-            var newPlayerPos = gameState.PlayerTetromino.Position + moveDir;
+            var newPlayerPos = _gameState.PlayerTetromino.Position + moveDir;
             newPlayerPos = new Vector2Int(
-                Mathf.Clamp(newPlayerPos.x, 0, gameState.GameTable.Size.x - gameState.PlayerTetromino.Size.x),
-                Mathf.Clamp(newPlayerPos.y, 0, gameState.GameTable.Size.y - gameState.PlayerTetromino.Size.y));
+                Mathf.Clamp(newPlayerPos.x, 0, _gameState.GameTable.Size.x - _gameState.PlayerTetromino.Size.x),
+                Mathf.Clamp(newPlayerPos.y, 0, _gameState.GameTable.Size.y - _gameState.PlayerTetromino.Size.y));
             return newPlayerPos;
         }
 
@@ -773,7 +773,7 @@ namespace Tetra4bica.Core
         {
             foreach (var cell in tetromino)
             {
-                if (!isOutOfMapBounds(cell + shift) && gameState.GameTable[cell + shift].HasValue)
+                if (!isOutOfMapBounds(cell + shift) && _gameState.GameTable[cell + shift].HasValue)
                 {
                     return false;
                 }
@@ -782,59 +782,58 @@ namespace Tetra4bica.Core
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isOutOfHorizontalMapBounds(float x) => gameState.GameTable.IsOutOfHorizontalMapBounds(x);
+        private bool isOutOfHorizontalMapBounds(float x) => _gameState.GameTable.IsOutOfHorizontalMapBounds(x);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool isOutOfVerticalMapBounds(float y) => gameState.GameTable.IsOutOfVerticalMapBounds(y);
+        private bool isOutOfVerticalMapBounds(float y) => _gameState.GameTable.IsOutOfVerticalMapBounds(y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool isOutOfMapBounds(Vector2 position)
-            => gameState.GameTable.IsOutOfMapBounds(position);
+            => _gameState.GameTable.IsOutOfMapBounds(position);
 
         class GameInputStreams : IGameInputBus
         {
-            readonly ISubject<MovementInput> playerMovementStream = new Subject<MovementInput>();
-            ISubject<MovementInput> IGameInputBus.PlayerMovementStream => playerMovementStream;
+            private readonly ISubject<MovementInput> _playerMovementStream = new Subject<MovementInput>();
+            ISubject<MovementInput> IGameInputBus.PlayerMovementStream => _playerMovementStream;
 
-            readonly ISubject<Unit> playerShotStream = new Subject<Unit>();
-            ISubject<Unit> IGameInputBus.PlayerShotStream => playerShotStream;
+            private readonly ISubject<Unit> _playerShotStream = new Subject<Unit>();
+            ISubject<Unit> IGameInputBus.PlayerShotStream => _playerShotStream;
 
-            readonly ISubject<bool> playerRotateStream = new Subject<bool>();
-            ISubject<bool> IGameInputBus.PlayerRotateStream => playerRotateStream;
+            private readonly ISubject<bool> _playerRotateStream = new Subject<bool>();
+            ISubject<bool> IGameInputBus.PlayerRotateStream => _playerRotateStream;
 
-            readonly ISubject<Unit> gameStartStream = new Subject<Unit>();
-            ISubject<Unit> IGameInputBus.GameStartStream => gameStartStream;
+            private readonly ISubject<Unit> _gameStartStream = new Subject<Unit>();
+            ISubject<Unit> IGameInputBus.GameStartStream => _gameStartStream;
 
-            readonly ISubject<bool> gamePauseResumeStream = new Subject<bool>();
-            ISubject<bool> IGameInputBus.GamePauseResumeStream => gamePauseResumeStream;
+            private readonly ISubject<bool> _gamePauseResumeStream = new Subject<bool>();
+            ISubject<bool> IGameInputBus.GamePauseResumeStream => _gamePauseResumeStream;
 
             public GameInputStreams() { }
         }
 
         class TimeEventBus : IGameTimeBus
         {
-            readonly ISubject<float> frameUpdateStream = new Subject<float>();
-            public ISubject<float> FrameUpdatePublisher => frameUpdateStream;
+            public ISubject<float> FrameUpdatePublisher => _frameUpdateStream;
+            private readonly ISubject<float> _frameUpdateStream = new Subject<float>();
         }
     }
 
     internal struct WallSpawnEnumerable : IEnumerable<CellColor?[]>
     {
-
-        private ICellGenerator cellGenerator;
-        private CellColor?[] wallSpawnBuffer;
-        private int wallsCount;
+        private readonly ICellGenerator _cellGenerator;
+        private readonly CellColor?[] _wallSpawnBuffer;
+        private readonly int _wallsCount;
 
         public WallSpawnEnumerable(ICellGenerator cellGenerator, CellColor?[] wallSpawnBuffer, int wallsCount)
         {
-            this.cellGenerator = cellGenerator;
-            this.wallSpawnBuffer = wallSpawnBuffer;
-            this.wallsCount = wallsCount;
+            _cellGenerator = cellGenerator;
+            _wallSpawnBuffer = wallSpawnBuffer;
+            _wallsCount = wallsCount;
         }
 
 
         public WallSpawnEnumerator GetEnumerator()
         {
-            return new WallSpawnEnumerator(cellGenerator, wallSpawnBuffer, wallsCount);
+            return new WallSpawnEnumerator(_cellGenerator, _wallSpawnBuffer, _wallsCount);
         }
 
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -846,55 +845,54 @@ namespace Tetra4bica.Core
     internal struct WallSpawnEnumerator : IEnumerator<CellColor?[]>
     {
 
-        private ICellGenerator cellGenerator;
-        private CellColor?[] wallSpawnBuffer;
-        private int wallsCount;
+        private readonly ICellGenerator _cellGenerator;
+        private readonly CellColor?[] _wallSpawnBuffer;
+        private readonly int _wallsCount;
 
-        bool movedNext;
-        bool hasNext;
-        int currentWallInd;
+        bool _movedNext;
+        bool _hasNext;
+        int _currentWallInd;
 
         public WallSpawnEnumerator(ICellGenerator cellGenerator, CellColor?[] wallSpawnBuffer, int wallsCount)
         {
-            this.cellGenerator = cellGenerator;
-            this.wallSpawnBuffer = wallSpawnBuffer;
-            this.wallsCount = wallsCount;
-            movedNext = false;
-            hasNext = false;
-            currentWallInd = 0;
+            _cellGenerator = cellGenerator;
+            _wallSpawnBuffer = wallSpawnBuffer;
+            _wallsCount = wallsCount;
+            _movedNext = false;
+            _hasNext = false;
+            _currentWallInd = 0;
         }
 
         public CellColor?[] Current =>
-            !movedNext || !hasNext
+            !_movedNext || !_hasNext
             ? throw new InvalidOperationException("No more elements to iterate!")
-            : wallSpawnBuffer;
+            : _wallSpawnBuffer;
 
         object IEnumerator.Current => Current;
 
 
         public bool MoveNext()
         {
-            movedNext = true;
-            if (wallsCount != 0 && currentWallInd < wallsCount)
+            _movedNext = true;
+            if (_wallsCount != 0 && _currentWallInd < _wallsCount)
             {
-                cellGenerator.GenerateCells(wallSpawnBuffer);
-                currentWallInd++;
-                hasNext = true;
+                _cellGenerator.GenerateCells(_wallSpawnBuffer);
+                _currentWallInd++;
+                _hasNext = true;
             }
             else
             {
-                hasNext = false;
+                _hasNext = false;
             }
-            return hasNext;
+            return _hasNext;
         }
 
         public void Reset()
         {
-            movedNext = false;
-            hasNext = false;
-            currentWallInd = 0;
+            _movedNext = false;
+            _hasNext = false;
+            _currentWallInd = 0;
         }
         public void Dispose() { }
     }
-
 }

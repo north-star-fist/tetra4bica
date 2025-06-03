@@ -1,8 +1,9 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Zenject;
 
 [TestFixture]
-public class ZenjectIdentifiersTest : ZenjectUnitTestFixture {
+public class ZenjectIdentifiersTest : ZenjectUnitTestFixture
+{
 
     interface ITest { }
 
@@ -14,21 +15,23 @@ public class ZenjectIdentifiersTest : ZenjectUnitTestFixture {
     const string ID_BY_METHOD_1 = "M1";
     const string ID_BY_METHOD_2 = "M2";
 
-    static ITest instance1 = new Test();
-    static ITest instance2 = new Test();
+    static ITest s_instance1 = new Test();
+    static ITest s_instance2 = new Test();
 
     [SetUp]
-    public override void Setup() {
+    public override void Setup()
+    {
         base.Setup();
-        Container.Bind<ITest>().WithId(ID_INSTANCED_1).FromInstance(instance1).AsCached().NonLazy();
-        Container.Bind<ITest>().WithId(ID_INSTANCED_2).FromInstance(instance2).AsCached().NonLazy();
+        Container.Bind<ITest>().WithId(ID_INSTANCED_1).FromInstance(s_instance1).AsCached().NonLazy();
+        Container.Bind<ITest>().WithId(ID_INSTANCED_2).FromInstance(s_instance2).AsCached().NonLazy();
 
         Container.Bind<ITest>().WithId(ID_BY_METHOD_1).FromMethod(geneate1).AsCached().NonLazy();
         Container.Bind<ITest>().WithId(ID_BY_METHOD_2).FromMethod(geneate1).AsCached().NonLazy();
         //Container.Bind<ITest>().WithId(ID_BY_METHOD_2).FromMethod(geneate1).AsCached().NonLazy();
     }
 
-    private ITest geneate1() {
+    private ITest geneate1()
+    {
         return new Test();
     }
 
@@ -40,24 +43,27 @@ public class ZenjectIdentifiersTest : ZenjectUnitTestFixture {
     }*/
 
     [Test]
-    public void TestNoDefaults() {
+    public void TestNoDefaults()
+    {
         Assert.Throws<Zenject.ZenjectException>(() => Container.Resolve<ITest>());
     }
 
     [Test]
-    public void TestInstance() {
+    public void TestInstance()
+    {
         var obj1 = Container.ResolveId<ITest>(ID_INSTANCED_1);
         var obj2 = Container.ResolveId<ITest>(ID_INSTANCED_1);
 
-        Assert.AreEqual(instance1, obj1);
-        Assert.AreNotEqual(instance2, obj1);
+        Assert.AreEqual(s_instance1, obj1);
+        Assert.AreNotEqual(s_instance2, obj1);
 
-        Assert.AreEqual(instance1, obj2);
-        Assert.AreNotEqual(instance2, obj2);
+        Assert.AreEqual(s_instance1, obj2);
+        Assert.AreNotEqual(s_instance2, obj2);
     }
 
     [Test]
-    public void TestMethod() {
+    public void TestMethod()
+    {
         var obj1 = Container.ResolveId<ITest>(ID_BY_METHOD_1);
         var obj2 = Container.ResolveId<ITest>(ID_BY_METHOD_1);
 

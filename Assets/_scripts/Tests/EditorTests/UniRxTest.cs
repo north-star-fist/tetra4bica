@@ -1,15 +1,17 @@
+﻿using System.Collections.Generic;
 using NUnit.Framework;
-using System.Collections.Generic;
 using UniRx;
 
-public class UniRxTest {
+public class UniRxTest
+{
 
-    static int appendix = 0;
+    static int s_appendix = 0;
 
     [Test]
-    public void TestUniRxSelectWithMultipleSubscriptions() {
+    public void TestUniRxSelectWithMultipleSubscriptions()
+    {
         var subj = new Subject<int>();
-        var selectObs = subj.Select(i => i + appendix++).Share();
+        var selectObs = subj.Select(i => i + s_appendix++).Share();
 
         var collection1 = new List<int>();
         selectObs.Subscribe(i => { collection1.Add(i); });

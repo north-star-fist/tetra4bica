@@ -141,6 +141,19 @@ dotnet_naming_symbols.member_fields.applicable_accessibilities = private, protec
 dotnet_naming_symbols.member_fields.required_modifiers = private
 
 dotnet_naming_style.member_field_style.capitalization = camel_case
+dotnet_naming_style.member_field_style.required_prefix = _
+
+# Private static member fields are camelCase and start with s_
+dotnet_naming_rule.static_fields.symbols = static_fields
+dotnet_naming_rule.static_fields.style = static_fields_style
+dotnet_naming_rule.static_fields.severity = error
+
+dotnet_naming_symbols.static_fields.applicable_kinds = field
+dotnet_naming_symbols.static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.static_fields.required_modifiers = static
+
+dotnet_naming_style.static_fields_style.capitalization = camel_case
+dotnet_naming_style.static_fields_style.required_prefix = s_
 
 # Locals and parameters are camelCase
 dotnet_naming_rule.locals_should_be_camel_case.symbols = locals_and_parameters

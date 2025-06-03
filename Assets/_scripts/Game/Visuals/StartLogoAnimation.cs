@@ -11,20 +11,20 @@ namespace Tetra4bica.Graphics
     {
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource audioSource;
+        private AudioSource _audioSource;
 
         [SerializeField]
-        private float animationTime;
+        private float _animationTime;
         [SerializeField]
-        private Vector3 startScale = Vector3.one;
+        private Vector3 _startScale = Vector3.one;
         [SerializeField]
-        private Vector3 endScale = Vector3.one;
+        private Vector3 _endScale = Vector3.one;
         [SerializeField]
-        private float startRotation;
+        private float _startRotation;
         [SerializeField]
-        private float endRotation;
+        private float _endRotation;
         [SerializeField]
-        private AudioResource sfx;
+        private AudioResource _sfx;
 
 
         void Start()
@@ -32,13 +32,13 @@ namespace Tetra4bica.Graphics
             if (Application.platform != RuntimePlatform.WebGLPlayer)
             {
                 // WebGL players mostly do not allow to play sound until any key pressed. So just skipping it
-                SoundUtils.PlaySound(audioSource, sfx);
+                SoundUtils.PlaySound(_audioSource, _sfx);
             }
-            transform.eulerAngles = new Vector3(0, 0, startRotation);
-            transform.localScale = startScale;
-            transform.DOLocalRotate(new Vector3(0, 0, endRotation), animationTime, RotateMode.FastBeyond360).Play();
+            transform.eulerAngles = new Vector3(0, 0, _startRotation);
+            transform.localScale = _startScale;
+            transform.DOLocalRotate(new Vector3(0, 0, _endRotation), _animationTime, RotateMode.FastBeyond360).Play();
             //.SetEase(Ease.OutBounce);
-            transform.DOScale(endScale, animationTime).Play();
+            transform.DOScale(_endScale, _animationTime).Play();
         }
     }
 }

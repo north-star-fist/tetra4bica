@@ -11,15 +11,15 @@ namespace Tetra4bica.Init
     {
 
         [Inject(Id = PoolId.GAME_CELLS)]
-        IObjectPool<GameObject> tableCellPool;
+        private IObjectPool<GameObject> _tableCellPool;
         [SerializeField]
-        private ushort tableCellWarmNumber = 10 * 20;
+        private ushort _tableCellWarmNumber = 10 * 20;
 
         void Start()
         {
             List<GameObject> cellList = new List<GameObject>();
-            doInLoop(() => cellList.Add(tableCellPool.Get()), tableCellWarmNumber);
-            doForEach(cellList, (go) => tableCellPool.Release(go));
+            doInLoop(() => cellList.Add(_tableCellPool.Get()), _tableCellWarmNumber);
+            doForEach(cellList, (go) => _tableCellPool.Release(go));
         }
 
         void doInLoop(Action action, ushort times)

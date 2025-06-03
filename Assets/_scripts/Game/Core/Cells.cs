@@ -16,8 +16,8 @@ namespace Tetra4bica.Core
 
         public Cell(Vector2Int position, CellColor color)
         {
-            this.Position = position;
-            this.Color = color;
+            Position = position;
+            Color = color;
         }
 
         public override bool Equals(object obj)

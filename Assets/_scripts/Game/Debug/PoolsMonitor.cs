@@ -10,27 +10,27 @@ namespace Tetra4bica.Debugging
     {
 
         [Inject(Id = PoolId.GAME_CELLS)]
-        IObjectPool<GameObject> bricksPool;
+        IObjectPool<GameObject> _bricksPool;
 
         [Inject(Id = PoolId.PLAYER_CELLS)]
-        IObjectPool<GameObject> playerPool;
+        IObjectPool<GameObject> _playerPool;
 
         [Inject(Id = PoolId.SCORE_CELLS)]
-        IObjectPool<GameObject> scorePool;
+        IObjectPool<GameObject> _scorePool;
 
         [Inject(Id = PoolId.PLAYER_EXPLOSION)]
-        IObjectPool<GameObject> playerExplosionPool;
+        IObjectPool<GameObject> _playerExplosionPool;
 
         [Inject(Id = PoolId.WALL_CELL_EXPLOSION)]
-        IObjectPool<GameObject> cellExplosionPool;
+        IObjectPool<GameObject> _cellExplosionPool;
 
         private void OnGUI()
         {
-            printPoolState(10, 10, nameof(PoolId.GAME_CELLS), bricksPool);
-            printPoolState(10, 60, nameof(PoolId.PLAYER_CELLS), playerPool);
-            printPoolState(10, 110, nameof(PoolId.SCORE_CELLS), scorePool);
-            printPoolState(10, 160, nameof(PoolId.PLAYER_EXPLOSION), playerExplosionPool);
-            printPoolState(10, 210, nameof(PoolId.WALL_CELL_EXPLOSION), cellExplosionPool);
+            printPoolState(10, 10, nameof(PoolId.GAME_CELLS), _bricksPool);
+            printPoolState(10, 60, nameof(PoolId.PLAYER_CELLS), _playerPool);
+            printPoolState(10, 110, nameof(PoolId.SCORE_CELLS), _scorePool);
+            printPoolState(10, 160, nameof(PoolId.PLAYER_EXPLOSION), _playerExplosionPool);
+            printPoolState(10, 210, nameof(PoolId.WALL_CELL_EXPLOSION), _cellExplosionPool);
         }
 
         private static void printPoolState(int screenX, int screenY, string poolId, IObjectPool<GameObject> pool)

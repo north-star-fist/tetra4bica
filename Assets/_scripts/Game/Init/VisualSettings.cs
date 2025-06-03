@@ -8,44 +8,44 @@ namespace Tetra4bica.Init
     public class VisualSettings
     {
         [SerializeField]
-        private float cellSize = 1;
+        private float _cellSize = 1;
 
         [SerializeField]
-        private Transform bottomLeftTunnelPoint;
+        private Transform _bottomLeftTunnelPoint;
         [SerializeField]
-        private Transform bricksParent;
+        private Transform _bricksParent;
         [
             SerializeField,
             Tooltip("When cell is eliminated score particle flies from the cell's location to the score lable. " +
                 "This is the flight time")
         ]
-        private float scoreParticlesFlightTimeMin = .3f;
+        private float _scoreParticlesFlightTimeMin = .3f;
         [
             SerializeField,
             Tooltip("When cell is eliminated score particle flies from the cell's location " +
                 "to the score lable. This is the flight time")
         ]
-        private float scoreParticlesFlightTimeMax = 0.7f;
+        private float _scoreParticlesFlightTimeMax = 0.7f;
 
-        public float CellSize => cellSize;
-        public Transform BricksParent => bricksParent;
-        public float ScoreParticlesFlightTimeMin => scoreParticlesFlightTimeMin;
-        public float ScoreParticlesFlightTimeMax => scoreParticlesFlightTimeMax;
+        public float CellSize => _cellSize;
+        public Transform BricksParent => _bricksParent;
+        public float ScoreParticlesFlightTimeMin => _scoreParticlesFlightTimeMin;
+        public float ScoreParticlesFlightTimeMax => _scoreParticlesFlightTimeMax;
 
-        Vector3? bottomLeftTunnelPosition = null;
+        Vector3? _bottomLeftTunnelPosition = null;
 
         public Vector3 BottomLeftPoint
         {
             get
             {
-                if (bottomLeftTunnelPosition.HasValue)
+                if (_bottomLeftTunnelPosition.HasValue)
                 {
-                    return bottomLeftTunnelPosition.Value;
+                    return _bottomLeftTunnelPosition.Value;
                 }
                 else
                 {
-                    return bottomLeftTunnelPoint != null
-                        ? bottomLeftTunnelPoint.position
+                    return _bottomLeftTunnelPoint != null
+                        ? _bottomLeftTunnelPoint.position
                         : Vector3.zero;
                 }
             }
@@ -57,9 +57,9 @@ namespace Tetra4bica.Init
 
         public VisualSettings(float cellSize, Vector3 bottomLeftTunnelPoint, Transform bricksParent = null)
         {
-            this.cellSize = cellSize;
-            this.bottomLeftTunnelPosition = bottomLeftTunnelPoint;
-            this.bricksParent = bricksParent;
+            this._cellSize = cellSize;
+            this._bottomLeftTunnelPosition = bottomLeftTunnelPoint;
+            this._bricksParent = bricksParent;
         }
     }
 }

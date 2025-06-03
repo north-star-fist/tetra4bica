@@ -13,25 +13,25 @@ namespace Tetra4bica.Sound
     {
 
         [Inject]
-        private IGameEvents gameLogic;
+        private IGameEvents _gameLogic;
 
         [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource playerAudioSource;
+        private AudioSource _playerAudioSource;
 
         [SerializeField]
-        private AudioResource playerDeathSfx;
+        private AudioResource _playerDeathSfx;
         [SerializeField]
-        private AudioResource playerShotSfx;
+        private AudioResource _playerShotSfx;
         [SerializeField]
-        private AudioResource playerRotateSfx;
+        private AudioResource _playerRotateSfx;
 
 
         private void Awake()
         {
             Setup(
-                gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default),
-                gameLogic.ShotStream,
-                gameLogic.RotationStream
+                _gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default),
+                _gameLogic.ShotStream,
+                _gameLogic.RotationStream
             );
         }
 
@@ -41,13 +41,13 @@ namespace Tetra4bica.Sound
             IObservable<bool> rotationStream)
         {
             gameOverStream.Subscribe(
-                _ => SoundUtils.PlaySound(playerAudioSource, playerDeathSfx)
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerDeathSfx)
             );
             playerShotStream.Subscribe(
-                _ => SoundUtils.PlaySound(playerAudioSource, playerShotSfx)
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerShotSfx)
             );
             rotationStream.Subscribe(
-                _ => SoundUtils.PlaySound(playerAudioSource, playerRotateSfx)
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerRotateSfx)
             );
         }
     }
