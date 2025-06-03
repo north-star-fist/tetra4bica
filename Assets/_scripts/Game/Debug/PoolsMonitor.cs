@@ -43,6 +43,5 @@ namespace Tetra4bica.Debugging
                 $"({objPool.CountActive.ToString()}/{pool.CountInactive.ToString()})"
             );
         }
-
     }
 }

@@ -8,13 +8,14 @@ using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.Debugging
 {
     public class LoggedColumnsProvider : CustomCellColumnGeneratorComponent
     {
 
-        [SerializeField, Tooltip("Relative path to file in persistent storage")]
+        [SerializeField, Tooltip("Relative path to file in persistent storage"), FormerlySerializedAs("logFilePath")]
         private string _logFilePath;
 
         private FileStream _logFileStream;

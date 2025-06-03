@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Init
@@ -12,7 +13,7 @@ namespace Tetra4bica.Init
 
         [Inject(Id = PoolId.GAME_CELLS)]
         private IObjectPool<GameObject> _tableCellPool;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("tableCellWarmNumber")]
         private ushort _tableCellWarmNumber = 10 * 20;
 
         void Start()

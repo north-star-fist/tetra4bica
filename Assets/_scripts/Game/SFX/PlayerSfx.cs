@@ -4,6 +4,7 @@ using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Sound
@@ -18,11 +19,11 @@ namespace Tetra4bica.Sound
         [Inject(Id = AudioSourceId.SoundEffects)]
         private AudioSource _playerAudioSource;
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("playerDeathSfx")]
         private AudioResource _playerDeathSfx;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("playerShotSfx")]
         private AudioResource _playerShotSfx;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("playerRotateSfx")]
         private AudioResource _playerRotateSfx;
 
 

@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using Tetra4bica.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.Graphics
 {
 
     public class GameCell : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("spriteRenderer")]
         private SpriteRenderer _spriteRenderer;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("spriteMap")]
         private ColorSprite[] _spriteMap;
 
         public SpriteRenderer SpriteRenderer => _spriteRenderer;

@@ -1,6 +1,7 @@
 ﻿using Tetra4bica.Input;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Zenject;
 
@@ -14,36 +15,36 @@ namespace Tetra4bica.Init
     public partial class PlayerInputInstaller : MonoInstaller
     {
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("touchScreenButtonsCanvas")]
         private Canvas _touchScreenButtonsCanvas;
         [Header("UI D-Pad")]
-        [SerializeField, Tooltip("UI Up button")]
+        [SerializeField, Tooltip("UI Up button"), FormerlySerializedAs("screenUpButton")]
         private Button _screenUpButton;
-        [SerializeField, Tooltip("UI Down button")]
+        [SerializeField, Tooltip("UI Down button"), FormerlySerializedAs("screenDownButton")]
         private Button _screenDownButton;
-        [SerializeField, Tooltip("UI Left button")]
+        [SerializeField, Tooltip("UI Left button"), FormerlySerializedAs("screenLeftButton")]
         private Button _screenLeftButton;
-        [SerializeField, Tooltip("UI Right button")]
+        [SerializeField, Tooltip("UI Right button"), FormerlySerializedAs("screenRightButton")]
         private Button _screenRightButton;
 
         [Header("UI A, B buttons")]
-        [SerializeField, Tooltip("UI Shoot button")]
+        [SerializeField, Tooltip("UI Shoot button"), FormerlySerializedAs("screenShootButton")]
         private Button _screenShootButton;
-        [SerializeField, Tooltip("UI Rotate button")]
+        [SerializeField, Tooltip("UI Rotate button"), FormerlySerializedAs("screenRotateButton")]
         private Button _screenRotateButton;
 
         [Header("Other UI buttons")]
-        [SerializeField, Tooltip("UI Pause/Resume buttons")]
+        [SerializeField, Tooltip("UI Pause/Resume buttons"), FormerlySerializedAs("pauseResumeButtons")]
         private Button[] _pauseResumeButtons;
-        [SerializeField, Tooltip("UI Start New Game buttons")]
+        [SerializeField, Tooltip("UI Start New Game buttons"), FormerlySerializedAs("startNewGameButtons")]
         private Button[] _startNewGameButtons;
-        [SerializeField, Tooltip("UI Exit buttons")]
+        [SerializeField, Tooltip("UI Exit buttons"), FormerlySerializedAs("exitButtons")]
         private Button[] _exitButtons;
 
         [Header("Objects to trigger")]
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("deactivateOnDisable")]
         private GameObject[] _deactivateOnDisable;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("activateOnEnable")]
         private GameObject[] _activateOnEnable;
 
         /// <summary> Sends units when player pushes a button to start new game. </summary>

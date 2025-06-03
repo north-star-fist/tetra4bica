@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.Init
 {
@@ -7,23 +8,25 @@ namespace Tetra4bica.Init
     [Serializable]
     public class VisualSettings
     {
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("cellSize")]
         private float _cellSize = 1;
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("bottomLeftTunnelPoint")]
         private Transform _bottomLeftTunnelPoint;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("bricksParent")]
         private Transform _bricksParent;
         [
             SerializeField,
             Tooltip("When cell is eliminated score particle flies from the cell's location to the score lable. " +
-                "This is the flight time")
+                "This is the flight time"),
+            FormerlySerializedAs("scoreParticlesFlightTimeMin")
         ]
         private float _scoreParticlesFlightTimeMin = .3f;
         [
             SerializeField,
             Tooltip("When cell is eliminated score particle flies from the cell's location " +
-                "to the score lable. This is the flight time")
+                "to the score lable. This is the flight time"),
+            FormerlySerializedAs("scoreParticlesFlightTimeMax")
         ]
         private float _scoreParticlesFlightTimeMax = 0.7f;
 

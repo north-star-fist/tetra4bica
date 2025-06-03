@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Init
@@ -7,15 +8,15 @@ namespace Tetra4bica.Init
 
     public class AudioSourcesInstaller : MonoInstaller
     {
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("audioSourcePrefabs")]
         private GroupPrefab[] _audioSourcePrefabs;
 
         [Serializable]
         public class GroupPrefab
         {
-            [SerializeField]
+            [SerializeField, FormerlySerializedAs("audioGroup")]
             private AudioSourceId _audioGroup;
-            [SerializeField]
+            [SerializeField, FormerlySerializedAs("audioSourcePrefab")]
             private GameObject _audioSourcePrefab;
 
             public AudioSourceId AudioGroup => _audioGroup;
@@ -30,7 +31,6 @@ namespace Tetra4bica.Init
                 Container.Bind<AudioSource>().WithId(groupPrefab.AudioGroup)
                     .FromComponentInNewPrefab(groupPrefab.AudioSourcePrefab).AsTransient().NonLazy();
             }
-
         }
     }
 }

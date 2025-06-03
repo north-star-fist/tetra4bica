@@ -2,6 +2,7 @@
 using Tetra4bica.Core;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.UI
@@ -14,7 +15,7 @@ namespace Tetra4bica.UI
         [Inject]
         IGameEvents _gameLogic;
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gamePhases")]
         private PhasePredicate[] _gamePhases;
 
         Canvas _canvas;

@@ -4,6 +4,7 @@ using Tetra4bica.Core;
 using Tetra4bica.Input;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 using static Tetra4bica.Core.GameLogic;
 
@@ -14,41 +15,71 @@ namespace Tetra4bica.Init
     {
 
         [Header("Game Setup")]
-        [SerializeField, Tooltip("Number of bricks that stay in one fullscreen vertical wall")]
+        [
+            SerializeField,
+            Tooltip("Number of bricks that stay in one fullscreen vertical wall"),
+            FormerlySerializedAs("tunnelHeightCellCount")
+        ]
         private int _tunnelHeightCellCount = 10;
-        [SerializeField, Tooltip("Length of the tunnel measured in bricks")]
+        [
+            SerializeField,
+            Tooltip("Length of the tunnel measured in bricks"),
+            FormerlySerializedAs("tunnelWidthCellCount")
+        ]
         private int _tunnelWidthCellCount = 20;
-        [SerializeField, Tooltip("Delay between table cells scrolling by one cell left in seconds")]
+        [
+            SerializeField,
+            Tooltip("Delay between table cells scrolling by one cell left in seconds"),
+            FormerlySerializedAs("tableScrollTimeStep")
+        ]
         private float _tableScrollTimeStep = 2f;
-        [SerializeField, Tooltip("Position of the bottom left corner of player tetromino at the game start")]
+        [
+            SerializeField,
+            Tooltip("Position of the bottom left corner of player tetromino at the game start"),
+            FormerlySerializedAs("playerStartPosition")
+        ]
         private Vector2Int _playerStartPosition = new Vector2Int(0, 4);
 
-        [SerializeField, Tooltip("Player tetromino color")]
+        [SerializeField, Tooltip("Player tetromino color"), FormerlySerializedAs("playerColor")]
         private CellColor _playerColor;
 
-        [SerializeField, Tooltip("Projectile speed in cells per second")]
+        [SerializeField, Tooltip("Projectile speed in cells per second"), FormerlySerializedAs("projectileSpeed")]
         private float _projectileSpeed = 5f;
 
         [
             SerializeField,
             Tooltip("Projectiles are stopped touching bricks if this flag is on. " +
-            "Like cells are rubberish and brake projectiles")
+                "Like cells are rubberish and brake projectiles"),
+            FormerlySerializedAs("lateralBricksStopProjectiles")
         ]
         private bool _lateralBricksStopProjectiles = true;
-        [SerializeField, Tooltip("Projectiles are stopped on the floor and ceiling collisions if this flag is on")]
+        [
+            SerializeField,
+            Tooltip("Projectiles are stopped on the floor and ceiling collisions if this flag is on"),
+            FormerlySerializedAs("projectilesCollideMapBounds")
+        ]
         private bool _projectilesCollideMapBounds = true;
 
-        [SerializeField, Tooltip("Color of projectile that became part of a wall")]
+        [
+            SerializeField,
+            Tooltip("Color of projectile that became part of a wall"),
+            FormerlySerializedAs("frozenProjectileColor")
+        ]
         private CellColor _frozenProjectileColor = CellColor.PaleBlue;
 
-        [SerializeField, Tooltip("JSON File keeping cell patterns for elimination")]
+        [
+            SerializeField,
+            Tooltip("JSON File keeping cell patterns for elimination"),
+            FormerlySerializedAs("patternsFile")
+        ]
         private string _patternsFile = "cell_patterns";
 
         [
             SerializeField,
             Tooltip("Custom gaim input events provider (maybe recorded beforehead). " +
                 "Implementation of IGameInputEventProvider should be added to the game object. " +
-                "Use it as alternative for natural game input for Debug purposes.")
+                "Use it as alternative for natural game input for Debug purposes."),
+            FormerlySerializedAs("customInputEventsProvider")
         ]
         private CustomGameInputEventsProviderComponent _customInputEventsProvider;
 
@@ -56,7 +87,8 @@ namespace Tetra4bica.Init
             SerializeField,
             Tooltip("Custom new rightest column generator. " +
                 "Implementation of ICellGenerator should be added to the game object. " +
-                "Use it as alternative for natural game input for Debug purposes.")
+                "Use it as alternative for natural game input for Debug purposes."),
+            FormerlySerializedAs("customCellGenerator")
         ]
         private CustomCellColumnGeneratorComponent _customCellGenerator;
 

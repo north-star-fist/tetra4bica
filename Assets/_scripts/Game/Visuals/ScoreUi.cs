@@ -9,6 +9,7 @@ using TMPro;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Zenject;
 
@@ -17,6 +18,9 @@ namespace Tetra4bica.Graphics
 
     public class ScoreUi : MonoBehaviour
     {
+
+        private static readonly Vector3 ParticleStartScale = Vector3.one;
+        private static readonly Vector3 ParticleEndScale = Vector3.one * 0.3f;
 
         [Inject]
         private IGameEvents _gameEvents;
@@ -30,20 +34,32 @@ namespace Tetra4bica.Graphics
         [Inject(Id = PoolId.SCORE_CELLS)]
         private IObjectPool<GameObject> _scoreParticlesPool;
 
-        [SerializeField, Tooltip("Root Rect Transform of the whole scores component (label + count)")]
+        [
+            SerializeField,
+            Tooltip("Root Rect Transform of the whole scores component (label + count)"),
+            FormerlySerializedAs("scoresPanel")
+        ]
         private RectTransform _scoresPanel;
-        [SerializeField, Tooltip("TextMeshPro component with score counter")]
+        [
+            SerializeField,
+            Tooltip("TextMeshPro component with score counter"),
+            FormerlySerializedAs("scoreCountTextTMP")
+        ]
         private TMP_Text _scoreCountTextTMP;
-        [SerializeField, Tooltip("Mask above the score text. Put it here todisable on game over")]
+        [
+            SerializeField,
+            Tooltip("Mask above the score text. Put it here todisable on game over"),
+            FormerlySerializedAs("scoresBackground")
+        ]
         private Image _scoresBackground;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("scoreGainSfx")]
         private AudioResource _scoreGainSfx;
 
-        [SerializeField, Tooltip("Size of Scores on Game Over event")]
+        [SerializeField, Tooltip("Size of Scores on Game Over event"), FormerlySerializedAs("scoreRectTransformFinalScale")]
         private Vector2 _scoreRectTransformFinalScale = Vector2.one * 4;
-        [SerializeField, Tooltip("Score panel ordinary position")]
+        [SerializeField, Tooltip("Score panel ordinary position"), FormerlySerializedAs("scoreTextPosition")]
         private RectTransform _scoreTextPosition;
-        [SerializeField, Tooltip("Score panel game over position")]
+        [SerializeField, Tooltip("Score panel game over position"), FormerlySerializedAs("gameOverScoreTextPosition")]
         private RectTransform _gameOverScoreTextPosition;
 
         private Vector3 _scoreParticlesLandingWorldPosition;
@@ -153,7 +169,7 @@ namespace Tetra4bica.Graphics
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor cell)
         {
             var cellWrapper = _cellWrappers[xy.x, xy.y];
-            SpriteRenderer renderer = cellWrapper.GetRenderer();
+            SpriteRenderer renderer = cellWrapper.GameCell.SpriteRenderer;
             renderer.color = Cells.ToUnityColor(cell);
             renderer.enabled = true;
             cellWrapper.GetTweenSequence().Restart();
@@ -161,11 +177,11 @@ namespace Tetra4bica.Graphics
 
         private void setUiScores(uint uiScores)
         {
-            if (this._uiScores == uiScores)
+            if (_uiScores == uiScores)
             {
                 return;
             }
-            this._uiScores = uiScores;
+            _uiScores = uiScores;
             _scoreCountTextTMP.text = uiScores.ToString("D4");
         }
 
@@ -175,14 +191,17 @@ namespace Tetra4bica.Graphics
 
         private class TweenCellParticleWrapper
         {
+            public GameCell GameCell => getPooledCell();
 
             private readonly IObjectPool<GameObject> _pool;
-            private GameObject _cell;
+            private GameCell _cell;
             private readonly Func<Vector2> _scorePosition;
             private Vector2 _startPosition;
             private readonly float _flightTime;
             private readonly Sequence _scoreTweenSeq;
             private readonly Action _onComplete;
+
+
 
             public TweenCellParticleWrapper(
                 IObjectPool<GameObject> cellPool,
@@ -192,8 +211,8 @@ namespace Tetra4bica.Graphics
                 Action onTweenComplete
             )
             {
-                this._pool = cellPool;
-                this._scorePosition = scorePosition;
+                _pool = cellPool;
+                _scorePosition = scorePosition;
                 _startPosition = startPos;
 
                 _flightTime = UnityEngine.Random.Range(
@@ -206,15 +225,15 @@ namespace Tetra4bica.Graphics
                     .Insert(0, GetScaleTween());
                 _scoreTweenSeq.onComplete = () =>
                 {
-                    GetRenderer().enabled = false;
+                    GameCell.SpriteRenderer.enabled = false;
                     _cell = null;
-                    this._onComplete?.Invoke();
+                    _onComplete?.Invoke();
                 };
-                this._onComplete = onTweenComplete;
+                _onComplete = onTweenComplete;
                 _cell = null;    // unbinding of the temporary cell
             }
 
-            public Sequence GetTweenSequence() { return _scoreTweenSeq; }
+            public Sequence GetTweenSequence() => _scoreTweenSeq;
 
             public Tween GetPositionTween()
             {
@@ -223,7 +242,7 @@ namespace Tetra4bica.Graphics
 
             public Tween GetScaleTween()
             {
-                return DOTween.To(GetScale, SetScale, (Vector2.one * 0.3f).toVector3(), _flightTime);
+                return DOTween.To(GetScale, SetScale, ParticleEndScale, _flightTime);
             }
 
             public Vector2 GetPosition()
@@ -246,21 +265,20 @@ namespace Tetra4bica.Graphics
                 getPooledCell().transform.localScale = newScale;
             }
 
-            GameObject getPooledCell()
+            GameCell getPooledCell()
             {
                 if (_cell == null)
                 {
-                    _cell = _pool.Get();
-                    GetRenderer().enabled = false;
+                    _cell = _pool.Get().GetComponent<GameCell>();
+                    if (_cell == null)
+                    {
+                        throw new MissingComponentException($"No {nameof(GameCell)} component found");
+                    }
+                    _cell.SpriteRenderer.enabled = false;
                     _cell.transform.SetPositionAndRotation(_scorePosition(), Quaternion.Euler(0, 0, UnityEngine.Random.value));
-                    _cell.transform.localScale = Vector3.one * 7;
+                    _cell.transform.localScale = ParticleStartScale;
                 }
                 return _cell;
-            }
-
-            public SpriteRenderer GetRenderer()
-            {
-                return getPooledCell().GetComponent<SpriteRenderer>();
             }
         }
 

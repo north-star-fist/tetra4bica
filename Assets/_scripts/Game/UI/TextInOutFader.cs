@@ -1,6 +1,7 @@
 ﻿using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.UI
 {
@@ -9,7 +10,7 @@ namespace Tetra4bica.UI
     public class TextInOutFader : MonoBehaviour
     {
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("fadeTime")]
         private float _fadeTime = 1.0f;
 
         TMP_Text _text;

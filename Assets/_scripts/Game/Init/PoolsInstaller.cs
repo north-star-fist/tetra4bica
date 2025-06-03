@@ -2,6 +2,7 @@
 using Sergei.Safonov.Utility.Pool;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Init
@@ -9,7 +10,7 @@ namespace Tetra4bica.Init
 
     public class PoolsInstaller : MonoInstaller
     {
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("pools")]
         private PoolIdDescription[] _pools;
 
         public override void InstallBindings()
@@ -27,9 +28,9 @@ namespace Tetra4bica.Init
             public PoolId PoolId => _poolId;
             public PoolDescriptionAsset PoolDescription => _poolDescription;
 
-            [SerializeField]
+            [SerializeField, FormerlySerializedAs("poolId")]
             private PoolId _poolId;
-            [SerializeField]
+            [SerializeField, FormerlySerializedAs("poolDescription")]
             private PoolDescriptionAsset _poolDescription;
         }
     }

@@ -2,6 +2,7 @@
 using Sergei.Safonov.Audio;
 using Tetra4bica.Init;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Graphics
@@ -13,17 +14,17 @@ namespace Tetra4bica.Graphics
         [Inject(Id = AudioSourceId.SoundEffects)]
         private AudioSource _audioSource;
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("animationTime")]
         private float _animationTime;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("startScale")]
         private Vector3 _startScale = Vector3.one;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("endScale")]
         private Vector3 _endScale = Vector3.one;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("startRotation")]
         private float _startRotation;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("endRotation")]
         private float _endRotation;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("sfx")]
         private AudioResource _sfx;
 
 

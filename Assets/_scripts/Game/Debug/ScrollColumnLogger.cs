@@ -5,6 +5,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using Tetra4bica.Core;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Debugging
@@ -13,7 +14,7 @@ namespace Tetra4bica.Debugging
     public class ScrollColumnLogger : MonoBehaviour
     {
 
-        [SerializeField, Tooltip("Relative path to file in persistent storage")]
+        [SerializeField, Tooltip("Relative path to file in persistent storage"), FormerlySerializedAs("logFilePath")]
         private string _logFilePath;
 
         [Inject]

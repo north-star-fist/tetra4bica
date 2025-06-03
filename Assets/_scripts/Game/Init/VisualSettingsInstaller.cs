@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Init
@@ -8,7 +9,7 @@ namespace Tetra4bica.Init
     public class VisualSettingsInstaller : MonoInstaller
     {
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("visualSettings")]
         private VisualSettings _visualSettings;
 
         public override void InstallBindings()

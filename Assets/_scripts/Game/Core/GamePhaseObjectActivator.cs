@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Core
@@ -8,9 +9,9 @@ namespace Tetra4bica.Core
 
     public class GamePhaseObjectActivator : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("objects")]
         private GameObject[] _objects;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gamePhases")]
         private PhasePredicate[] _gamePhases;
 
         [Inject]

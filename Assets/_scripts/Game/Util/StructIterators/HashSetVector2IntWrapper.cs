@@ -9,7 +9,7 @@ namespace Tetra4bica.Util.StructIterators
     /// <summary>
     /// Struct enumerator of bunch of <see cref="Vector2Int"/> that allows to set offset for this bunch.
     /// </summary>
-    public struct HashSetVector2IntWrapper : IEnumerator<Vector2Int>, IEnumerator, IDisposable
+    public struct HashSetVector2IntWrapper : IEnumerator<Vector2Int>
     {
 
         readonly HashSet<Vector2Int> _cells;

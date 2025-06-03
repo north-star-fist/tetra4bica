@@ -7,6 +7,7 @@ using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.Debugging
 {
@@ -14,7 +15,7 @@ namespace Tetra4bica.Debugging
     public class LoggedEventsProvider : CustomGameInputEventsProviderComponent
     {
 
-        [SerializeField, Tooltip("Relative path to file in persistent storage")]
+        [SerializeField, Tooltip("Relative path to file in persistent storage"), FormerlySerializedAs("logFilePath")]
         private string _logFilePath;
 
         override public IObservable<IGameInputEvent> GetInputStream() => _input;

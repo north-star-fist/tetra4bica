@@ -4,6 +4,7 @@ using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Tetra4bica.Sound
@@ -18,13 +19,13 @@ namespace Tetra4bica.Sound
         [Inject(Id = AudioSourceId.SoundEffects)]
         private AudioSource _sfxAudioSource;
 
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gameStartSfx")]
         private AudioResource _gameStartSfx;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gameOverSfx")]
         private AudioResource _gameOverSfx;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gameplayBgmAudioSource")]
         private AudioSource _gameplayBgmAudioSource;
-        [SerializeField]
+        [SerializeField, FormerlySerializedAs("gameOverBgmAudioSource")]
         private AudioSource _gameOverBgmAudioSource;
 
         private void Awake()
