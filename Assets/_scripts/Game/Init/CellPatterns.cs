@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Tetra4bica.Init
 {
-    internal class CellPatterns : ICellPatterns
+    public class CellPatterns : ICellPatterns
     {
 
         private readonly Dictionary<CellColor, CellFragment[]> _patterns;

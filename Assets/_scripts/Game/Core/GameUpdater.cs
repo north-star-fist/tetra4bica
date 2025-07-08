@@ -1,7 +1,6 @@
 ﻿using System;
 using UniRx;
 using UnityEngine;
-using Zenject;
 
 namespace Tetra4bica.Core
 {
@@ -9,7 +8,6 @@ namespace Tetra4bica.Core
     /// <summary>
     /// This class updates the game.
     /// </summary>
-    [ZenjectAllowDuringValidation]
     public class GameUpdater : MonoBehaviour, IGameTimeEvents
     {
 
@@ -17,9 +15,27 @@ namespace Tetra4bica.Core
 
         IObservable<float> IGameTimeEvents.FrameUpdateStream => _frames;
 
+        private bool _started;
+
         private void Awake()
         {
-            Observable.EveryGameObjectUpdate().Subscribe(_ => _frames.OnNext(Time.deltaTime));
+            Observable.EveryGameObjectUpdate().Subscribe(_ =>
+            {
+                if (_started)
+                {
+                    _frames.OnNext(Time.deltaTime);
+                }
+            });
+        }
+
+        public void StartFrames()
+        {
+            _started = true;
+        }
+
+        public void StopFrames()
+        {
+            _started = false;
         }
     }
 }

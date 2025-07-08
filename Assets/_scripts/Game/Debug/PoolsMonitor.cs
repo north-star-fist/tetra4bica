@@ -1,7 +1,7 @@
 ﻿using Tetra4bica.Init;
 using UnityEngine;
 using UnityEngine.Pool;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Debugging
 {
@@ -9,20 +9,23 @@ namespace Tetra4bica.Debugging
     public class PoolsMonitor : MonoBehaviour
     {
 
-        [Inject(Id = PoolId.GAME_CELLS)]
         IObjectPool<GameObject> _bricksPool;
-
-        [Inject(Id = PoolId.PLAYER_CELLS)]
         IObjectPool<GameObject> _playerPool;
-
-        [Inject(Id = PoolId.SCORE_CELLS)]
         IObjectPool<GameObject> _scorePool;
-
-        [Inject(Id = PoolId.PLAYER_EXPLOSION)]
         IObjectPool<GameObject> _playerExplosionPool;
-
-        [Inject(Id = PoolId.WALL_CELL_EXPLOSION)]
         IObjectPool<GameObject> _cellExplosionPool;
+
+        [Inject]
+        private IGameObjectPoolManager _poolManager;
+
+        private void Start()
+        {
+            _bricksPool = _poolManager.GetPool(PoolId.GAME_CELLS);
+            _playerPool = _poolManager.GetPool(PoolId.PLAYER_CELLS);
+            _scorePool = _poolManager.GetPool(PoolId.SCORE_CELLS);
+            _playerExplosionPool = _poolManager.GetPool(PoolId.PLAYER_EXPLOSION);
+            _cellExplosionPool = _poolManager.GetPool(PoolId.WALL_CELL_EXPLOSION);
+        }
 
         private void OnGUI()
         {

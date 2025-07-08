@@ -1,62 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using Sergei.Safonov.Audio;
 using Sergei.Safonov.Utility;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
-using Zenject;
+using UnityEngine.Serialization;
+using VContainer;
 using static Sergei.Safonov.Utility.VectorExt;
 
 namespace Tetra4bica.Graphics
 {
 
-    public class ColorTableView : MonoBehaviour
+    public class ColorTableView : MonoBehaviour, IColorTableView
     {
-        [Inject]
-        private IGameEvents _gameEvents;
 
-        [Inject]
-        private VisualSettings _visualSettings;
+        [SerializeField, FormerlySerializedAs("wallDestructionSfx")]
+        private AudioResource _wallDestructionSfx;
 
-        [Inject(Id = PoolId.GAME_CELLS)]
-        private IObjectPool<GameObject> _bricksPool;
 
-        [Inject(Id = PoolId.WALL_CELL_EXPLOSION)]
-        private IObjectPool<GameObject> _wallBrickExplosionParticlesPool;
+        private IVisualSettings _visualSettings;
+        private IGameObjectPoolManager _poolManager;
 
 
         // Brick instances on the map.
-        private Dictionary<Vector2Int, GameCell> _brickMap = new Dictionary<Vector2Int, GameCell>();
+        private readonly Dictionary<Vector2Int, GameCell> _brickMap = new Dictionary<Vector2Int, GameCell>();
 
         private Vector2Int _mapSize;
 
         private bool _started;
 
-        private void Awake()
-        {
-            Setup(
-                _gameEvents.GameStartedStream,
-                _gameEvents.NewCellStream,
-                _gameEvents.TableScrollStream,
-                _gameEvents.EliminatedBricksStream
-            );
-        }
+        private IObjectPool<GameObject> _bricksPool;
+        private IObjectPool<GameObject> _wallBrickExplosionParticlesPool;
 
-        void Setup(
-            IObservable<Vector2Int> gameStartedStream,
-            IObservable<Cell> newCellStream,
-            IObservable<IEnumerable<CellColor?>> mapScrollStream,
-            IObservable<Cell> eliminatedBricksStream
+
+        private AudioSource _audioSource;
+        
+
+        public void Setup(
+            IGameEvents gameEvents,
+            IVisualSettings visualSettings,
+            IGameObjectPoolManager poolManager,
+            IAudioSourceManager audioManager
         )
         {
-            mapScrollStream.Subscribe(scrollMap);
-            newCellStream.Subscribe((c) => updateBrickVisuals(c));
-            eliminatedBricksStream.Subscribe(
+            _visualSettings = visualSettings;
+            _poolManager = poolManager;
+            gameEvents.TableScrollStream.Subscribe(scrollMap).AddTo(this);
+            gameEvents.NewCellStream.Subscribe((c) => updateBrickVisuals(c)).AddTo(this);
+            gameEvents.EliminatedBricksStream.Subscribe(
                 (cell) => launchDestroyedBrickAnimation(cell.Position, cell.Color)
-            );
-            gameStartedStream.Subscribe(mapSize =>
+            ).AddTo(this);
+            gameEvents.GameStartedStream.Subscribe(mapSize =>
             {
                 if (this._mapSize == mapSize)
                 {
@@ -70,7 +67,15 @@ namespace Tetra4bica.Graphics
                 );
                 eraseAll();
                 _started = true;
-            });
+            }).AddTo(this);
+
+            gameEvents.EliminatedBricksStream.Subscribe(
+                _ => SoundUtils.PlaySound(_audioSource, _wallDestructionSfx)
+            ).AddTo(this);
+            _audioSource = audioManager.GetAudioSource(AudioSourceId.SoundEffects);
+
+            _bricksPool = _poolManager.GetPool(PoolId.GAME_CELLS);
+            _wallBrickExplosionParticlesPool = _poolManager.GetPool(PoolId.WALL_CELL_EXPLOSION);
         }
 
         private void eraseAll()

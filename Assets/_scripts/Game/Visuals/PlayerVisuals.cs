@@ -1,59 +1,76 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Sergei.Safonov.Audio;
 using Sergei.Safonov.Utility;
 using Tetra4bica.Core;
 using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
-using Zenject;
+using UnityEngine.Serialization;
 
 namespace Tetra4bica.Graphics
 {
-    public class PlayerVisuals : MonoBehaviour
+    public class PlayerVisuals : MonoBehaviour, IPlayerVisuals
     {
-
-        [Inject]
-        private IGameEvents _gameEvents;
-        [Inject]
-        private GameLogic.GameSettings _gameSettings;
-        [Inject]
-        private VisualSettings _visualSettings;
-
-        [Inject(Id = PoolId.PLAYER_CELLS)]
-        private IObjectPool<GameObject> _playerCellPool;
-        [Inject(Id = PoolId.PLAYER_EXPLOSION)]
-        private IObjectPool<GameObject> _playerDeathParticlesPool;
-
-
         // It's tetromino - so it is 4.
         private const int PLAYER_TETRAMINO_CELL_COUNT = 4;
 
-        private PlayerVisuals _backComponent;
+        [SerializeField, FormerlySerializedAs("playerDeathSfx")]
+        private AudioResource _playerDeathSfx;
+        [SerializeField, FormerlySerializedAs("playerShotSfx")]
+        private AudioResource _playerShotSfx;
+        [SerializeField, FormerlySerializedAs("playerRotateSfx")]
+        private AudioResource _playerRotateSfx;
+
+
+        private AudioSource _playerAudioSource;
+
+
+        private IVisualSettings _visualSettings;
+
+
+        private IObjectPool<GameObject> _playerCellPool;
+        private IObjectPool<GameObject> _playerDeathParticlesPool;
+
 
         private readonly GameCell[] _playerCells = new GameCell[PLAYER_TETRAMINO_CELL_COUNT];
 
-        private void Awake()
-        {
-            Setup(
-                this,
-                _gameEvents.PlayerTetrominoStream,
-                _gameEvents.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
-            );
-        }
 
-        void Setup(
-            PlayerVisuals backComponent,
-            IObservable<PlayerTetromino> playerTetrominoObservable,
-            IObservable<Unit> gameOverObservable
+        public void Setup(
+            IGameEvents gameEvents,
+            GameLogic.GameSettings gameSettings,
+            IVisualSettings visualSettings,
+            IGameObjectPoolManager poolManager,
+            IAudioSourceManager audioManager
         )
         {
-            _backComponent = backComponent;
-            playerTetrominoObservable.Subscribe(RenderPlayer);
-            gameOverObservable.WithLatestFrom(playerTetrominoObservable, (_, tetromino) => tetromino)
-                .Subscribe(t => _ = animatePlayerDeath(t));
+            releasePlayerCells();
+            releaseDeathParticles();
 
-            _playerCellPool = backComponent._playerCellPool;
+            _playerAudioSource = audioManager.GetAudioSource(AudioSourceId.SoundEffects);
+            _playerCellPool = poolManager.GetPool(PoolId.PLAYER_CELLS);
+            _playerDeathParticlesPool = poolManager.GetPool(PoolId.PLAYER_EXPLOSION);
+            _visualSettings = visualSettings;
+
+            var gameOverStream = gameEvents.GamePhaseStream
+                .Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default);
+
+            gameEvents.PlayerTetrominoStream.Subscribe(RenderPlayer);
+            gameOverStream.WithLatestFrom(gameEvents.PlayerTetrominoStream, (_, tetromino) => tetromino)
+                .Subscribe(t => animatePlayerDeath(t));
+
+            gameOverStream.Subscribe(
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerDeathSfx)
+            );
+            gameEvents.ShotStream.Subscribe(
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerShotSfx)
+            );
+            gameEvents.RotationStream.Subscribe(
+                _ => SoundUtils.PlaySound(_playerAudioSource, _playerRotateSfx)
+            );
+
+
             for (int i = 0; i < PLAYER_TETRAMINO_CELL_COUNT; i++)
             {
                 _playerCells[i] = _playerCellPool.Get().GetComponent<GameCell>();
@@ -62,9 +79,26 @@ namespace Tetra4bica.Graphics
                     throw new MissingComponentException($"No {nameof(GameCell)} component found");
                 }
                 _playerCells[i].gameObject.SetActive(false);
-                _playerCells[i].SetColor(backComponent._gameSettings.PlayerColor);
+                _playerCells[i].SetColor(gameSettings.PlayerColor);
+            }
+
+            void releasePlayerCells()
+            {
+                if (_playerDeathParticlesPool != null && _playerCells != null)
+                {
+                    for (int i = 0; i < _playerCells.Length; i++)
+                    {
+                        _playerCellPool.Release(_playerCells[i].gameObject);
+                    }
+                }
+            }
+
+            void releaseDeathParticles()
+            {
+                // these particles return to their pool theirself, so we can just leave
             }
         }
+
 
         public void RenderPlayer(PlayerTetromino tetramino)
         {
@@ -80,22 +114,21 @@ namespace Tetra4bica.Graphics
                 }
                 var plCellComp = _playerCells[playerCellsCounter];
                 Vector2 cellShift = new Vector2(
-                    plCell.x * _backComponent._visualSettings.CellSize,
-                    plCell.y * _backComponent._visualSettings.CellSize
+                    plCell.x * _visualSettings.CellSize,
+                    plCell.y * _visualSettings.CellSize
                 );
                 plCellComp.transform.position =
-                    _backComponent._visualSettings.BottomLeftPoint + (Vector3)cellShift;
+                    _visualSettings.BottomLeftPoint + (Vector3)cellShift;
                 plCellComp.gameObject.SetActive(true);
                 playerCellsCounter++;
             }
         }
 
-        private async Task animatePlayerDeath(PlayerTetromino tetromino)
+        private void animatePlayerDeath(PlayerTetromino tetromino)
         {
-            if (_backComponent._playerDeathParticlesPool != null)
+            if (_playerDeathParticlesPool != null)
             {
-                IObjectPool<GameObject> particlesPool = _backComponent._playerDeathParticlesPool;
-                explodePlayerCells(tetromino, particlesPool);
+                explodePlayerCells(tetromino, _playerDeathParticlesPool);
             }
             disableVisuals();
         }

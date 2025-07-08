@@ -1,19 +1,16 @@
-﻿using DG.Tweening;
+﻿using System.Runtime.CompilerServices;
+using DG.Tweening;
 using Sergei.Safonov.Audio;
 using Tetra4bica.Init;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Graphics
 {
 
     public class StartLogoAnimation : MonoBehaviour
     {
-
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource _audioSource;
-
         [SerializeField, FormerlySerializedAs("animationTime")]
         private float _animationTime;
         [SerializeField, FormerlySerializedAs("startScale")]
@@ -27,9 +24,18 @@ namespace Tetra4bica.Graphics
         [SerializeField, FormerlySerializedAs("sfx")]
         private AudioResource _sfx;
 
+        [Inject]
+        private IAudioSourceManager _audioManager;
 
-        void Start()
+        private AudioSource _audioSource;
+
+        async void Start()
         {
+            while (_audioManager == null)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+            _audioSource = _audioManager.GetAudioSource(AudioSourceId.SoundEffects);
             if (Application.platform != RuntimePlatform.WebGLPlayer)
             {
                 // WebGL players mostly do not allow to play sound until any key pressed. So just skipping it

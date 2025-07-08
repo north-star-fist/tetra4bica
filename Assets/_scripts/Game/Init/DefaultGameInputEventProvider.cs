@@ -2,11 +2,10 @@
 using Tetra4bica.Core;
 using Tetra4bica.Input;
 using UniRx;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Init
 {
-    [ZenjectAllowDuringValidation]
     public class DefaultGameInputEventProvider : IGameInputEventProvider
     {
 

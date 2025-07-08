@@ -5,20 +5,13 @@ using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+
 
 namespace Tetra4bica.Sound
 {
 
-    public class GameMainEventsSfx : MonoBehaviour
+    public class GameMainEventsSfx : MonoBehaviour, IMainGameEventsSfx
     {
-
-        [Inject]
-        private IGameEvents _gameLogic;
-
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource _sfxAudioSource;
-
         [SerializeField, FormerlySerializedAs("gameStartSfx")]
         private AudioResource _gameStartSfx;
         [SerializeField, FormerlySerializedAs("gameOverSfx")]
@@ -28,29 +21,22 @@ namespace Tetra4bica.Sound
         [SerializeField, FormerlySerializedAs("gameOverBgmAudioSource")]
         private AudioSource _gameOverBgmAudioSource;
 
-        private void Awake()
-        {
-            Setup(
-                _gameLogic.GamePhaseStream.Scan
-                (
-                    // Getting switching to Started phase only after NotStarted or GameOver phases
-                    // keeping in mind that the Game can not be started at Paused state (if it can -
-                    // game starting sound is played)
-                    (GamePhase.NotStarted, GamePhase.NotStarted),
-                    (phaseSwitch, newPhase) =>
-                    {
-                        return (phaseSwitch.Item2, newPhase);
-                    }
-                ).Where(phaseSwitch => phaseSwitch.Item1 is GamePhase.GameOver or GamePhase.NotStarted
-                    && phaseSwitch.Item2 is GamePhase.Started).Select(_ => Unit.Default),
-                _gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default)
-            );
-        }
 
-        void Setup(IObservable<Unit> gameStartedStream, IObservable<Unit> gameOverStream)
+        private IAudioSourceManager _audioManager;
+
+        private AudioSource _sfxAudioSource;
+
+
+        public void Setup(
+            IObservable<Unit> gameStartedStream,
+            IObservable<Unit> gameOverStream,
+            IAudioSourceManager audioManager
+        )
         {
             gameStartedStream.Subscribe(_ => startBgmAfterSfx(_gameStartSfx, _gameplayBgmAudioSource));
             gameOverStream.Subscribe(_ => startBgmAfterSfx(_gameOverSfx, _gameOverBgmAudioSource));
+
+            _sfxAudioSource = audioManager.GetAudioSource(AudioSourceId.SoundEffects);
         }
 
         private void startBgmAfterSfx(AudioResource sfx, AudioSource bgmAudioSource)

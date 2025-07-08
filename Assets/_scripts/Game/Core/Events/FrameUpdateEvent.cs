@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Tetra4bica.Core
 {
@@ -15,6 +16,8 @@ namespace Tetra4bica.Core
         }
 
         public void Apply(IGameTimeBus timeEventsBus, IGameInputBus _)
-            => timeEventsBus.FrameUpdatePublisher.OnNext(DeltaTime);
+        {
+            timeEventsBus.FrameUpdatePublisher.OnNext(DeltaTime);
+        }
     }
 }

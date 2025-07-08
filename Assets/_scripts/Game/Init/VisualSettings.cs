@@ -1,4 +1,5 @@
 ﻿using System;
+using Tetra4bica.Core;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -6,7 +7,7 @@ namespace Tetra4bica.Init
 {
 
     [Serializable]
-    public class VisualSettings
+    public class VisualSettings : IVisualSettings
     {
         [SerializeField, FormerlySerializedAs("cellSize")]
         private float _cellSize = 1;

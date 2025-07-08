@@ -116,14 +116,14 @@ namespace Tetra4bica.Input
                 uiUpButtonStream.Select(_ => new MovementInput(VerticalInput.Up))
                 .Merge(new[] { uiDownButtonStream.Select(_ => new MovementInput(VerticalInput.Down)) });
 
-            IObservable<HorizontalInput> playerHorizontalInputStream = Observable.EveryGameObjectUpdate()
+            IObservable<HorizontalInput> playerHorizontalInputStream = Observable.EveryUpdate()
                 .Select(_ => !_stopped && UnityEngine.Input.GetButtonDown(HorizontalAxis))
                 .Select(pressed => pressed
                     ? UnityEngine.Input.GetAxis(HorizontalAxis) > 0
                         ? HorizontalInput.Right
                         : HorizontalInput.Left
                     : HorizontalInput.None);
-            IObservable<VerticalInput> playerVerticalInputStream = Observable.EveryGameObjectUpdate()
+            IObservable<VerticalInput> playerVerticalInputStream = Observable.EveryUpdate()
                 .Select(_ => !_stopped && UnityEngine.Input.GetButtonDown(VerticalAxis))
                 .Select(pressed => pressed
                     ? UnityEngine.Input.GetAxis(VerticalAxis) > 0

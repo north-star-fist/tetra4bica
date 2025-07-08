@@ -11,28 +11,19 @@ using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-using Zenject;
+
 
 namespace Tetra4bica.Graphics
 {
 
-    public class ScoreUi : MonoBehaviour
+    public class ScoreUi : MonoBehaviour, IScoreUi
     {
 
         private static readonly Vector3 ParticleStartScale = Vector3.one;
         private static readonly Vector3 ParticleEndScale = Vector3.one * 0.3f;
 
-        [Inject]
-        private IGameEvents _gameEvents;
+        private IVisualSettings _visualSettings;
 
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource _uiSoundsAudioSource;
-
-        [Inject]
-        private VisualSettings _visualSettings;
-
-        [Inject(Id = PoolId.SCORE_CELLS)]
-        private IObjectPool<GameObject> _scoreParticlesPool;
 
         [
             SerializeField,
@@ -62,7 +53,7 @@ namespace Tetra4bica.Graphics
         [SerializeField, Tooltip("Score panel game over position"), FormerlySerializedAs("gameOverScoreTextPosition")]
         private RectTransform _gameOverScoreTextPosition;
 
-        private Vector3 _scoreParticlesLandingWorldPosition;
+        private Vector3? _scoreParticlesLandingWorldPosition;
 
         private uint _uiScores;
         private uint _trueScores;
@@ -73,6 +64,8 @@ namespace Tetra4bica.Graphics
 
         private bool _isWebGlPlayer;
 
+        private AudioSource _uiSoundsAudioSource;
+        private IObjectPool<GameObject> _scoreParticlesPool;
 
         private void Start()
         {
@@ -81,35 +74,40 @@ namespace Tetra4bica.Graphics
             {
                 throw new ArgumentException($"{nameof(_scoreCountTextTMP)} is undefined");
             }
-            Setup(
-                _gameEvents.GameStartedStream,
-                _gameEvents.EliminatedBricksStream,
-                _gameEvents.ScoreStream,
-                _gameEvents.GamePhaseStream.Where(g => g == GamePhase.GameOver).AsUnitObservable()
-            );
         }
 
 
-        void Setup(
+        public void Setup(
             IObservable<Vector2Int> gameStartedStream,
             IObservable<Cell> eliminatedBricksObservable,
             IObservable<uint> scoresObservable,
-            IObservable<Unit> gameOverObservable
+            IObservable<Unit> gameOverObservable,
+
+            IVisualSettings visualSettings,
+            IGameObjectPoolManager poolManager,
+            IAudioSourceManager audioManager
         )
         {
-            gameStartedStream.DelayFrame(2).Subscribe(size =>
+            _visualSettings = visualSettings;
+
+            _uiSoundsAudioSource = audioManager.GetAudioSource(AudioSourceId.SoundEffects);
+            _scoreParticlesPool = poolManager.GetPool(PoolId.SCORE_CELLS);
+
+            gameStartedStream.Delay(TimeSpan.FromSeconds(2f)).Subscribe(size =>
             {
                 createDoTweenCache(size);
+            }).AddTo(this);
+            gameStartedStream.Delay(TimeSpan.FromSeconds(0.5f)).Subscribe(size =>
+            {
                 resetScoreTextTransform();
                 setUiScores(0);
-            });
+            }).AddTo(this);
             gameStartedStream.First().DelayFrame(1).Subscribe(
                 _ =>
                 {
-                    updateScoresDestinationPosition();
                     initScoresFinalAnimation();
                 }
-            );
+            ).AddTo(this);
             eliminatedBricksObservable.Subscribe(cell => launchDestroyedBrickAnimation(cell.Position, cell.Color));
             scoresObservable.Subscribe(scores => this._trueScores = scores);
             gameOverObservable.Subscribe((_) => enlargeScores());
@@ -164,7 +162,15 @@ namespace Tetra4bica.Graphics
             }
         }
 
-        private Vector2 getScoreParticlesLandingWorldPosition() => _scoreParticlesLandingWorldPosition;
+        private Vector2 getScoreParticlesLandingWorldPosition()
+        {
+            if (_scoreParticlesLandingWorldPosition == null)
+            {
+                var scoreTransPos = _scoreCountTextTMP.transform.position;
+                _scoreParticlesLandingWorldPosition = Camera.main.ScreenToWorldPoint(scoreTransPos);
+            }
+            return _scoreParticlesLandingWorldPosition.Value;
+        }
 
         private void launchDestroyedBrickAnimation(Vector2Int xy, CellColor cell)
         {
@@ -185,9 +191,6 @@ namespace Tetra4bica.Graphics
             _scoreCountTextTMP.text = uiScores.ToString("D4");
         }
 
-        private void updateScoresDestinationPosition()
-            => _scoreParticlesLandingWorldPosition
-                = Camera.main.ScreenToWorldPoint(_scoreCountTextTMP.transform.position);
 
         private class TweenCellParticleWrapper
         {
@@ -207,7 +210,7 @@ namespace Tetra4bica.Graphics
                 IObjectPool<GameObject> cellPool,
                 Func<Vector2> scorePosition,
                 Vector2 startPos,
-                VisualSettings visualSettings,
+                IVisualSettings visualSettings,
                 Action onTweenComplete
             )
             {
@@ -275,7 +278,8 @@ namespace Tetra4bica.Graphics
                         throw new MissingComponentException($"No {nameof(GameCell)} component found");
                     }
                     _cell.SpriteRenderer.enabled = false;
-                    _cell.transform.SetPositionAndRotation(_scorePosition(), Quaternion.Euler(0, 0, UnityEngine.Random.value));
+                    var randomRotation = Quaternion.Euler(0, 0, UnityEngine.Random.value);
+                    _cell.transform.SetPositionAndRotation(_scorePosition(), randomRotation);
                     _cell.transform.localScale = ParticleStartScale;
                 }
                 return _cell;

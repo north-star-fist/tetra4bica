@@ -5,7 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/_scenes/BuckleUp.unity
+  - enabled: 0
+    path: Assets/_scenes/Game.unity
     guid: 70404654d968e8d47b1a549c42de217e
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: daa56dd68d6b48648a2344f1517dd9e5, type: 2}
+  m_UseUCBPForAssetBundles: 0

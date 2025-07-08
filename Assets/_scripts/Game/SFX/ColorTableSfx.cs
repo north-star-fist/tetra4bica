@@ -4,29 +4,30 @@ using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Sound
 {
 
     public class ColorTableSfx : MonoBehaviour
     {
-
-        [Inject]
-        private IGameEvents _gameLogic;
-
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource _audioSource;
-
         [SerializeField, FormerlySerializedAs("wallDestructionSfx")]
         private AudioResource _wallDestructionSfx;
 
+        [Inject]
+        private IGameEvents _gameLogic;
+        [Inject]
+        private IAudioSourceManager _audioManager;
 
-        private void Awake()
+        private AudioSource _audioSource;
+
+
+        private void Start()
         {
             _gameLogic.EliminatedBricksStream.Subscribe(
                 _ => SoundUtils.PlaySound(_audioSource, _wallDestructionSfx)
             );
+            _audioSource = _audioManager.GetAudioSource(AudioSourceId.SoundEffects);
         }
     }
 }

@@ -6,7 +6,7 @@ using Tetra4bica.Core;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Debugging
 {

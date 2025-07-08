@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,6 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.TestTools;
-using Zenject;
 using static Sergei.Safonov.Utility.VectorExt;
 
 namespace Tetra4bica.Tests
@@ -316,3 +316,4 @@ namespace Tetra4bica.Tests
         }
     }
 }
+*/

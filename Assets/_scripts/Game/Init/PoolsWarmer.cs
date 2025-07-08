@@ -3,21 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Init
 {
 
     public class PoolsWarmer : MonoBehaviour
     {
-
-        [Inject(Id = PoolId.GAME_CELLS)]
-        private IObjectPool<GameObject> _tableCellPool;
+        [Inject]
+        private IGameObjectPoolManager _poolManager;
         [SerializeField, FormerlySerializedAs("tableCellWarmNumber")]
         private ushort _tableCellWarmNumber = 10 * 20;
 
+        IObjectPool<GameObject> _tableCellPool;
+
         void Start()
         {
+            _tableCellPool = _poolManager.GetPool(PoolId.GAME_CELLS);
             List<GameObject> cellList = new List<GameObject>();
             doInLoop(() => cellList.Add(_tableCellPool.Get()), _tableCellWarmNumber);
             doForEach(cellList, (go) => _tableCellPool.Release(go));

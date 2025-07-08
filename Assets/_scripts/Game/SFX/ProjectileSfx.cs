@@ -5,29 +5,29 @@ using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Sound
 {
 
     public class ProjectileSfx : MonoBehaviour
     {
-
-        [Inject]
-        IGameEvents _gameLogic;
-
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        AudioSource _audioSource;
         [SerializeField, FormerlySerializedAs("particleFrozenSfx")]
         private AudioResource _particleFrozenSfx;
 
-        private void Awake()
+        IGameEvents _gameLogic;
+        [Inject]
+        private IAudioSourceManager _audioManager;
+
+        AudioSource _audioSource;
+
+        private void Start()
         {
-            Setup(_gameLogic.FrozenProjectilesStream);
+            _audioSource = _audioManager.GetAudioSource(AudioSourceId.SoundEffects);
         }
 
 
-        void Setup(IObservable<Vector2Int> projectileFrozenStream)
+        public void Setup(IObservable<Vector2Int> projectileFrozenStream)
         {
             projectileFrozenStream.Subscribe(_ => SoundUtils.PlaySound(_audioSource, _particleFrozenSfx));
         }

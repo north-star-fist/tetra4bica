@@ -5,20 +5,13 @@ using Tetra4bica.Init;
 using UniRx;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Zenject;
+using VContainer;
 
 namespace Tetra4bica.Sound
 {
 
     public class PlayerSfx : MonoBehaviour
     {
-
-        [Inject]
-        private IGameEvents _gameLogic;
-
-        [Inject(Id = AudioSourceId.SoundEffects)]
-        private AudioSource _playerAudioSource;
-
         [SerializeField, FormerlySerializedAs("playerDeathSfx")]
         private AudioResource _playerDeathSfx;
         [SerializeField, FormerlySerializedAs("playerShotSfx")]
@@ -26,14 +19,22 @@ namespace Tetra4bica.Sound
         [SerializeField, FormerlySerializedAs("playerRotateSfx")]
         private AudioResource _playerRotateSfx;
 
+        [Inject]
+        private IGameEvents _gameLogic;
+        [Inject]
+        private IAudioSourceManager _audioManager;
 
-        private void Awake()
+        private AudioSource _playerAudioSource;
+
+
+        private void Start()
         {
             Setup(
                 _gameLogic.GamePhaseStream.Where(phase => phase is GamePhase.GameOver).Select(phase => Unit.Default),
                 _gameLogic.ShotStream,
                 _gameLogic.RotationStream
             );
+            _playerAudioSource = _audioManager.GetAudioSource(AudioSourceId.SoundEffects);
         }
 
         void Setup(

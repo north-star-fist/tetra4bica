@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using Sergei.Safonov.Utility;
 using UniRx;
 using UnityEngine;
-using Zenject;
 using static Sergei.Safonov.Utility.VectorExt;
 using static Tetra4bica.Input.PlayerInput;
 using static Tetra4bica.Input.PlayerInput.MovementInput;
@@ -17,7 +16,6 @@ namespace Tetra4bica.Core
     /// <summary>
     /// Class that gets game input streams and gives game change streams.
     /// </summary>
-    [ZenjectAllowDuringValidation]
     public class GameLogic : IGameEvents
     {
         public GameState GameState => _gameState;
@@ -132,7 +130,6 @@ namespace Tetra4bica.Core
             }
         }
 
-        [Inject]
         public GameLogic(
             GameSettings gameSettings,
             IGameInputEventProvider inputEventProvider,
@@ -196,8 +193,7 @@ namespace Tetra4bica.Core
             _playerInputBus.PlayerShotStream.Subscribe(_ => handleShot());
 
             _frozenProjectilesInnerStream.Subscribe(handleNewCell);
-            _playerInputBus.GameStartStream
-            .Subscribe(tableSize => SetPhase(GamePhase.Started));
+            _playerInputBus.GameStartStream.Subscribe(tableSize => SetPhase(GamePhase.Started));
             _playerInputBus.GamePauseResumeStream.Subscribe(
                 paused => SetPhase(paused ? GamePhase.Paused : GamePhase.Started)
             );
@@ -224,7 +220,6 @@ namespace Tetra4bica.Core
             }
             _gameState.SetGamePhase(gamePhase);
             _gamePhaseStream.OnNext(gamePhase);
-            //Debug.Log($"Switching {oldPhase} to {gamePhase}");
             return oldPhase;
         }
 

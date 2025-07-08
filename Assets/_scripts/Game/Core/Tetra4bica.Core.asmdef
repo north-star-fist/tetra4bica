@@ -3,9 +3,12 @@
     "rootNamespace": "",
     "references": [
         "UniRx",
-        "Zenject",
         "Tetra4bica.Input",
-        "Tetra4bica.Util"
+        "Tetra4bica.Util",
+        "sergei.safonov.asyncstatemachine",
+        "VContainer",
+        "sergei.safonov.scenemanager",
+        "Unity.Addressables"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -14,7 +17,9 @@
     "precompiledReferences": [
         "Zenject-usage.dll",
         "System.Collections.Immutable.dll",
-        "Safonov.Unity.Util.General.dll"
+        "Safonov.Unity.Util.General.dll",
+        "Newtonsoft.Json.dll",
+        "Safonov.Unity.Util.Sound.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [],
