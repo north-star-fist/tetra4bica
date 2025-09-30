@@ -8,8 +8,6 @@
         "Tetra4bica.Input",
         "Tetra4bica.Core",
         "Tetra4bica.Util",
-        "Zenject",
-        "Zenject-TestFramework",
         "Unity.PerformanceTesting"
     ],
     "includePlatforms": [
@@ -21,7 +19,6 @@
     "precompiledReferences": [
         "nunit.framework.dll",
         "Moq.dll",
-        "Zenject-usage.dll",
         "System.Collections.Immutable.dll",
         "Safonov.Unity.Util.General.dll"
     ],

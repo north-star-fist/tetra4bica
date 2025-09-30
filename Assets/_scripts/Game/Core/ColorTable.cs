@@ -15,6 +15,7 @@ namespace Tetra4bica.Core
 
 
         private readonly CellColor?[,] _cellsTable;
+        private readonly Dictionary<Vector2Int, float> _cellsSpawnTime = new();
 
         private Vector2Int _size;
 
@@ -37,7 +38,7 @@ namespace Tetra4bica.Core
         {
             foreach (var cell in cells)
             {
-                this[cell.Position] = cell.Color;
+                SetCell(cell.Position, cell.Color, null);
             }
         }
 
@@ -50,10 +51,6 @@ namespace Tetra4bica.Core
             {
                 return getColor(v2i(x, y));
             }
-            set
-            {
-                SetCell(new Vector2Int(x, y), value);
-            }
         }
 
         // Defines the Vector2 indexer, which will allow colored cells
@@ -63,17 +60,26 @@ namespace Tetra4bica.Core
             {
                 return getColor(position);
             }
-            set
-            {
-                SetCell(position, value);
-            }
         }
 
-        public void SetCell(Vector2Int pos, CellColor? color)
+        public void SetCell(int x, int y, CellColor? color, float? time)
+        {
+            SetCell(v2i(x, y), color, time);
+        }
+
+        public void SetCell(Vector2Int pos, CellColor? color, float? time)
         {
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
             _cellsTable[shiftedPos.x, shiftedPos.y] = color;
+            if (time.HasValue)
+            {
+                _cellsSpawnTime[shiftedPos] = time.Value;
+            }
+            else
+            {
+                _cellsSpawnTime.Remove(shiftedPos);
+            }
         }
 
         public void RemoveCell(Vector2Int pos)
@@ -81,6 +87,27 @@ namespace Tetra4bica.Core
             verifyCellPosition(pos);
             Vector2Int shiftedPos = shiftPosition(pos);
             _cellsTable[shiftedPos.x, shiftedPos.y] = null;
+            _cellsSpawnTime.Remove(shiftedPos);
+        }
+
+        /// <summary>
+        /// Gets cell spawn time untill it scrolled left.
+        /// </summary>
+        /// <param name="x"> X </param>
+        /// <param name="y"> Y </param>
+        /// <returns> Spawn time until the cell is scrolled </returns>
+        public float? GetCellSpawnTime(int x, int y)
+        {
+            if (IsOutOfMapBounds(new (x, y)))
+            {
+                return null;
+            }
+            Vector2Int shiftedPosition = shiftPosition(new Vector2Int(x, y));
+            if (_cellsSpawnTime.TryGetValue(shiftedPosition, out var time))
+            {
+                return time;
+            }
+            return null;
         }
 
         /// <summary>
@@ -230,7 +257,6 @@ namespace Tetra4bica.Core
             scrollMapLeft();
             // Add new wall
             spawnNewWall();
-            //Debug.Log(this);
 
             void spawnNewWall()
             {
@@ -238,7 +264,7 @@ namespace Tetra4bica.Core
                 int y = 0;
                 foreach (CellColor? cellColor in newWallCells)
                 {
-                    SetCell(v2i(lastColumnX, y++), cellColor);
+                    SetCell(v2i(lastColumnX, y++), cellColor, null);
                 }
             }
         }
@@ -311,10 +337,15 @@ namespace Tetra4bica.Core
             {
                 _startingX = 0;
             }
+            _cellsSpawnTime.Clear();
         }
 
         private CellColor? getColor(Vector2Int cell)
         {
+            if (IsOutOfMapBounds(cell))
+            {
+                return null;
+            }
             Vector2Int shiftedPosition = shiftPosition(cell);
             return _cellsTable[shiftedPosition.x, shiftedPosition.y];
         }

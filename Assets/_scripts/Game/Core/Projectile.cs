@@ -7,13 +7,13 @@ namespace Tetra4bica.Core
     public struct Projectile
     {
 
-        public bool Active;
+        public bool IsActive;
         public Vector2 Position;
         public Vector2Int Direction;
 
         public Projectile(Vector2 position, Vector2Int direction)
         {
-            Active = true;
+            IsActive = true;
             Position = position;
             Direction = direction;
         }

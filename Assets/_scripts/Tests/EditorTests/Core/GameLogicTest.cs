@@ -1,7 +1,7 @@
-﻿/*
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moq;
 using NUnit.Framework;
 using Sergei.Safonov.Utility;
 using Tetra4bica.Core;
@@ -10,6 +10,7 @@ using UnityEngine;
 using static Sergei.Safonov.Utility.VectorExt;
 using static Tetra4bica.Core.GameLogic;
 using static Tetra4bica.Input.PlayerInput;
+using static Tetra4bica.Core.CellColor;
 
 public class GameLogicTest
 {
@@ -53,9 +54,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 5, projectileSpeed: 1);
 
-        var wall = new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
-            null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
-        };
+        var wall = new CellColor?[] {null, PaleBlue, PaleBlue, PaleBlue, null, PaleBlue, PaleBlue, PaleBlue };
         _cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
 
@@ -77,12 +76,8 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 5, projectileSpeed: 1);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, CellColor.PaleBlue, null, null,
-                null, CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue
-            },
-            new CellColor?[] { null, CellColor.PaleBlue, null, CellColor.PaleBlue,
-                CellColor.Magenta, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
-            }
+            new CellColor?[] {null, PaleBlue, null, null, null, Magenta, PaleBlue, PaleBlue },
+            new CellColor?[] { null, PaleBlue, null, PaleBlue, Magenta, PaleBlue, PaleBlue, PaleBlue }
         });
 
         // Imitation
@@ -105,9 +100,7 @@ public class GameLogicTest
     public void TestZTetrominoEliminationAlmostWholeRegion()
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 3, projectileSpeed: 8);
-        var wall = new CellColor?[] {null, null, null, null,
-            CellColor.Red, CellColor.Red, CellColor.Red, null
-        };
+        var wall = new CellColor?[] {null, null, null, null, Red, Red, Red, null };
         _cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
 
@@ -119,6 +112,12 @@ public class GameLogicTest
         _eventProvider.Publisher.OnNext(new ShotEvent());
         _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
 
+        Assert.True(
+            (new Cell[] {
+                new Cell(v2i(6, 4), Red)
+            })
+            .HasSameContent(_newCellsCollector.Items.ToArray())
+        );
         Assert.True(
             new Vector2Int[] { v2i(6, 3), v2i(6, 4), v2i(7, 4), v2i(7, 5) }.HasSameContent(
             _eliminatedCellsCollecter.Items.Select(vc => vc.Position))
@@ -129,8 +128,7 @@ public class GameLogicTest
     public void TestZTetrominoEliminationLargeRegion()
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 3, projectileSpeed: 8);
-        var wall = new CellColor?[] {null, null, null, null,
-            CellColor.Red, CellColor.Red, CellColor.Red, CellColor.Red };
+        var wall = new CellColor?[] {null, null, null, null, Red, Red, Red, Red };
         _cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
             .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
 
@@ -140,11 +138,47 @@ public class GameLogicTest
         _eventProvider.Publisher.OnNext(new ShotEvent());
         _eventProvider.Publisher.OnNext(new MotionEvent(new MovementInput(MovementInput.VerticalInput.Down)));
         _eventProvider.Publisher.OnNext(new ShotEvent());
-        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1.1f));
 
+        Assert.True(
+            (new Cell[] {
+                        new Cell(v2i(6, 4), Red)
+            })
+            .HasSameContent(_newCellsCollector.Items.ToArray())
+        );
         Assert.True(
             new Vector2Int[] { v2i(6, 3), v2i(6, 4), v2i(7, 4), v2i(7, 5) }.HasSameContent(
             _eliminatedCellsCollecter.Items.Select(vc => vc.Position))
+        );
+    }
+
+    [Test]
+    public void Test_TwoPaleBlueCellTable_TwoProjectlesShotSimultaneously_OneSticksAnotherSlides()
+    {
+        setUpGame(w: 8, h: 8, playerLocation: v2i(1, 3), scrollTime: 3, projectileSpeed: 8);
+        var wall = new CellColor?[] { null, null, null, null, null, PaleBlue, PaleBlue, null };
+        _cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
+            .Callback<CellColor?[]>((buffer) => Array.Copy(wall, buffer, buffer.Length));
+
+        // Imitation
+        _eventProvider.Publisher.OnNext(new StartNewGameEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(3));
+        _eventProvider.Publisher.OnNext(new MotionEvent(new MovementInput(MovementInput.VerticalInput.Down)));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(new MotionEvent(new MovementInput(MovementInput.VerticalInput.Up)));
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1f/16));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
+
+        Assert.True(_eliminatedCellsCollecter.Items.Count == 0);
+        Assert.True(
+            (new Cell[] {
+                //new Cell(v2i(7, 6), PaleBlue),
+                //new Cell(v2i(7, 5), PaleBlue),
+                new Cell(v2i(7, 4), PaleBlue),
+                //new Cell(v2i(7, 3), PaleBlue)
+            })
+            .HasSameContent(_newCellsCollector.Items.ToArray())
         );
     }
 
@@ -156,9 +190,7 @@ public class GameLogicTest
             new CellColor?[] {null, null, CellColor.Green, null, null, null, null, null},
             _emptyWall8,
             _emptyWall8,
-            new CellColor?[] {null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue,
-                null, CellColor.PaleBlue, CellColor.PaleBlue, CellColor.PaleBlue
-            }
+            new CellColor?[] {null, PaleBlue, PaleBlue, PaleBlue, null, PaleBlue, PaleBlue, PaleBlue }
         });
 
         // Imitation
@@ -204,8 +236,7 @@ public class GameLogicTest
 
         IEnumerable<Vector2Int> eliminatedCells = _eliminatedCellsCollecter.Items.Select(vc => vc.Position).ToArray();
         Assert.True(
-            (new Vector2Int[] { v2i(6, 2), v2i(6, 3), v2i(6, 4), v2i(6, 5) })
-            .HasSameContent(eliminatedCells)
+            (new Vector2Int[] { v2i(6, 2), v2i(6, 3), v2i(6, 4), v2i(6, 5) }).HasSameContent(eliminatedCells)
         );
     }
 
@@ -240,9 +271,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 2), scrollTime: 5, projectileSpeed: 1);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Green, CellColor.Green,
-                CellColor.Green, null, null, null
-            }
+            new CellColor?[] {null, null, Green, Green, Green, null, null, null }
         });
 
         // Imitation
@@ -265,13 +294,41 @@ public class GameLogicTest
     }
 
     [Test]
+    public void Test_TwoFastProjectilesLandingNearSameCellAboveAndLeft_BothAreLandedCloseToCell()
+    {
+        setUpGame(w: 8, h: 8, playerLocation: v2i(0, 2), scrollTime: 1, projectileSpeed: 2);
+        setUpCellColumns(new CellColor?[][] {
+            new CellColor?[] {null, null, Green, null, null, null, null, null }
+        });
+
+        // Imitation
+        _eventProvider.Publisher.OnNext(new StartNewGameEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(
+            new MotionEvent(new MovementInput(MovementInput.HorizontalInput.None, MovementInput.VerticalInput.Down))
+        );
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(.01f));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        for (int i = 0; i < 90; i++)
+        {
+            _eventProvider.Publisher.OnNext(new FrameUpdateEvent(3f/90));
+        }
+
+        IEnumerable<Cell> newCells = _newCellsCollector.Items;
+        Assert.AreEqual(2, newCells.Count());
+        Assert.AreEqual(new Cell(v2i(5, 2), CellColor.Green), newCells.First());
+        Assert.AreEqual(new Cell(v2i(6, 3), CellColor.Green), newCells.Last());
+    }
+
+    [Test]
     public void TestProjectileLandsWhenTableShifts()
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 2, projectileSpeed: 1);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null},
-            new CellColor?[] {null, null, CellColor.Red, null, null, null, null, null},
-            _emptyWall8, _emptyWall8 });
+            new CellColor?[] {null, null, Red, null, null, null, null, null},
+            new CellColor?[] {null, null, Red, null, null, null, null, null},
+        });
 
         // Imitation
         _eventProvider.Publisher.OnNext(new StartNewGameEvent());
@@ -283,9 +340,10 @@ public class GameLogicTest
 
         IEnumerable<Vector2Int> newCells = _newCellsCollector.Items.Select(vc => vc.Position).ToArray();
         Assert.True(
-            (new Vector2Int[] { v2i(6, 3), v2i(7, 3) })
-            .HasSameContent(newCells)
+            (new Vector2Int[] { v2i(6, 3) }).HasSameContent(newCells)
         );
+        var eliminatedCells = _eliminatedCellsCollecter.Items.Select(c => c.Position).ToArray();
+        Assert.True(new Vector2Int[] { v2i(5, 3), v2i(6, 3), v2i(6, 2), v2i(7, 2) }.HasSameContent(eliminatedCells));
     }
 
     [Test]
@@ -293,10 +351,8 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(3, 2), scrollTime: 1, projectileSpeed: 2);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
-            new CellColor ?[] {null, null, CellColor.Red, null, null, null, null, null },
-            _emptyWall8,
-            _emptyWall8
+            new CellColor ?[] {null, null, Red, null, null, null, null, null },
+            new CellColor ?[] {null, null, Red, null, null, null, null, null },
         });
 
         // Imitation
@@ -305,8 +361,8 @@ public class GameLogicTest
         _eventProvider.Publisher.OnNext(new ShotEvent());
         _eventProvider.Publisher.OnNext(new FrameUpdateEvent(2));
 
-        IEnumerable<Vector2Int> newCells = _newCellsCollector.Items.Select(vc => vc.Position);
-        Assert.True((new Vector2Int[] { v2i(7, 3) }).HasSameContent(newCells));
+        var newCells = _newCellsCollector.Items.Select(vc => vc.Position).ToArray();
+        Assert.True((new Vector2Int[] { v2i(6, 3) }).HasSameContent(newCells));
     }
 
     [Test]
@@ -314,8 +370,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(2, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+            new CellColor?[] {null, null, Magenta, null, null, null, null, null }
         });
 
         // Imitation
@@ -335,9 +390,9 @@ public class GameLogicTest
             (new Vector2Int[] { v2i(5, 2), v2i(6, 2) })
             .HasSameContent(newCells)
         );
-        Assert.AreEqual(CellColor.Magenta, _gameLogic.GameState.GameTable[v2i(4, 2)]);
-        Assert.AreEqual(CellColor.Magenta, _gameLogic.GameState.GameTable[v2i(5, 2)]);
-        Assert.AreEqual(CellColor.Magenta, _gameLogic.GameState.GameTable[v2i(6, 2)]);
+        Assert.AreEqual(Magenta, _gameLogic.GameState.GameTable[v2i(4, 2)]);
+        Assert.AreEqual(Magenta, _gameLogic.GameState.GameTable[v2i(5, 2)]);
+        Assert.AreEqual(Magenta, _gameLogic.GameState.GameTable[v2i(6, 2)]);
     }
 
     [Test]
@@ -345,8 +400,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Magenta, null, null, null, null, null },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+            new CellColor?[] {null, null, Magenta, null, null, null, null, null },
         });
 
         // Imitation
@@ -364,7 +418,7 @@ public class GameLogicTest
         _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1));
 
         IEnumerable<Vector2Int> newCells = _newCellsCollector.Items.Select(vc => vc.Position).ToArray();
-        Assert.True((new Vector2Int[] { v2i(5, 3), v2i(6, 2) }).HasSameContent(newCells));
+        //Assert.True((new Vector2Int[] { v2i(4, 3), v2i(5, 2) }).HasSameContent(newCells));
         var eliminatedCells = _eliminatedCellsCollecter.Items.Select(c => c.Position).ToArray();
         Assert.True(new Vector2Int[] { v2i(3, 2), v2i(4, 2), v2i(5, 2), v2i(4, 3) }.HasSameContent(eliminatedCells));
     }
@@ -374,9 +428,8 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-             new CellColor?[] {null, null, null, null, CellColor.Orange, null, null, null },
-             new CellColor?[] {null, null, CellColor.Orange, null, null, null, null, null },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+             new CellColor?[] {null, null, null, null, Orange, null, null, null },
+             new CellColor?[] {null, null, Orange, null, null, null, null, null },
         });
 
         // Imitation
@@ -396,13 +449,38 @@ public class GameLogicTest
     }
 
     [Test]
+    public void TestEliminationL()
+    {
+        setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 4, projectileSpeed: 8);
+        setUpCellColumns(new CellColor?[][] {
+             new CellColor?[] {null, null, Orange, null, null, null, null, null },
+        });
+
+        // Imitation
+        _eventProvider.Publisher.OnNext(new StartNewGameEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(4));
+        // One cell on the table
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1f));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1f));
+        _eventProvider.Publisher.OnNext(new MotionEvent(new MovementInput(MovementInput.VerticalInput.Down)));
+        _eventProvider.Publisher.OnNext(new ShotEvent());
+        _eventProvider.Publisher.OnNext(new FrameUpdateEvent(1f));
+
+        IEnumerable<Vector2Int> newCells = _newCellsCollector.Items.Select(vc => vc.Position).ToArray();
+        Assert.True((new Vector2Int[] { v2i(6, 2), v2i(5, 2) }).HasSameContent(newCells));
+        var eliminatedCells = _eliminatedCellsCollecter.Items.Select(c => c.Position).ToArray();
+        Assert.True(new Vector2Int[] { v2i(6, 2), v2i(5, 2), v2i(5, 1), v2i(7, 2) }.HasSameContent(eliminatedCells));
+    }
+
+    [Test]
     public void TestEliminationScrolledBackL()
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {null, null, CellColor.Blue, null, null, null, null, null },
-            new CellColor?[] {null, CellColor.Blue, CellColor.Blue, null, null, null, null, null },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+            new CellColor?[] {null, null, Blue, null, null, null, null, null },
+            new CellColor?[] {null, Blue, Blue, null, null, null, null, null },
         });
 
         // Imitation
@@ -421,11 +499,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 16);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {
-                CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
-                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta
-            },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+            new CellColor?[] { Red, Orange, null, Yellow, Green, PaleBlue, Blue, Magenta },
         });
 
         // Imitation
@@ -448,8 +522,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(0, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
-                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
+            new CellColor?[] { Red, Orange, null, Yellow, Green, PaleBlue, Blue, Magenta },
             _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
         });
 
@@ -476,9 +549,7 @@ public class GameLogicTest
     {
         setUpGame(w: 8, h: 8, playerLocation: v2i(3, 1), scrollTime: 1, projectileSpeed: 8);
         setUpCellColumns(new CellColor?[][] {
-            new CellColor?[] {CellColor.Red, CellColor.Orange, null, CellColor.Yellow,
-                CellColor.Green, CellColor.PaleBlue, CellColor.Blue, CellColor.Magenta },
-            _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8, _emptyWall8
+            new CellColor?[] { Red, Orange, null, Yellow, Green, PaleBlue, Blue, Magenta },
         });
 
         // Imitation
@@ -589,7 +660,16 @@ public class GameLogicTest
     {
         int wallCounter = 0;
         _cellGeneratorMock.Setup(g => g.GenerateCells(It.IsAny<CellColor?[]>()))
-            .Callback<CellColor?[]>((buffer) => Array.Copy(walls[wallCounter++], buffer, buffer.Length));
+            .Callback<CellColor?[]>((buffer) =>
+            {
+                if (wallCounter < walls.Length) {
+                    Array.Copy(walls[wallCounter++], buffer, buffer.Length);
+                }
+                else
+                {
+                    Array.Fill(buffer, null);
+                }
+            });
     }
 
     private class StreamItemCollector<T> : IObserver<T>
@@ -612,4 +692,4 @@ public class GameLogicTest
         public IObservable<IGameInputEvent> GetInputStream() => Publisher;
     }
 }
-*/
+

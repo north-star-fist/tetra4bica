@@ -29,7 +29,7 @@ namespace Tetra4bica.Core
         private readonly IObservable<float> _frameUpdateStream;
         public IObservable<float> FrameUpdateStream => _frameUpdateStream;
 
-        private readonly IObservable<IEnumerable<CellColor?>> _tableScrollStream;
+        private readonly Subject<IEnumerable<CellColor?>> _tableScrollStream = new ();
         /// <summary>
         /// Scrolls game table cells left for one column passing new the most right column of the table.
         /// </summary>
@@ -94,6 +94,10 @@ namespace Tetra4bica.Core
         // Not to record game over before event that bring us here waiting for one frame
         private bool _handleGameOverNextFrame;
 
+        float _previousScrollTime;
+        float _timeSincePreviousScroll;
+        private float _time;
+
         public struct GameSettings
         {
             readonly public int MapWidth;
@@ -137,43 +141,15 @@ namespace Tetra4bica.Core
             ICellGenerator cellGenerator
         )
         {
-            this._gameSettings = gameSettings;
-            this._cellPatterns = tetraminoPatterns;
-            this._cellGenerator = cellGenerator;
+            _gameSettings = gameSettings;
+            _cellPatterns = tetraminoPatterns;
+            _cellGenerator = cellGenerator;
             _wallSpawnBuffer = new CellColor?[gameSettings.MapHeight];
 
             _frameUpdateStream = _timeEventsBus.FrameUpdatePublisher;
-
-            IObservable<int> scrollStepStream = _frameUpdateStream
-                .Where(_ => _gameState.GamePhase is not GamePhase.Paused and not GamePhase.NotStarted)
-                .Scan((acc, delta) => acc + delta)
-                .Select(time => (int)(time / gameSettings.ScrollTimeStep))
-                .DistinctUntilChanged()
-                .Scan((0, 0), (oldStepsAndDelta, newSteps)
-                    =>
-                { return (newSteps, newSteps - oldStepsAndDelta.Item1); })
-                .SelectMany(stepsWithDelta => Enumerable.Range(stepsWithDelta.Item1 - stepsWithDelta.Item2, stepsWithDelta.Item2));
-            // Making TableScrollStream connectable Observable not to repeat side effects for each subscriber
-            // (as new column generation).
-            _tableScrollStream = scrollStepStream
-                .Do(_ => this._cellGenerator.GenerateCells(_wallSpawnBuffer))
-                .Select(steps => _wallSpawnBuffer).Share();
+            _frameUpdateStream.Subscribe(HandleFrame);
 
             inputEventProvider.GetInputStream().Subscribe(e => e.Apply(_timeEventsBus, _playerInputBus));
-
-            _frameUpdateStream.Where(_ => _gameState.GamePhase is not GamePhase.Paused or GamePhase.NotStarted)
-                .Subscribe(deltaTime =>
-                {
-                    handleProjectiles(deltaTime);
-                });
-            _frameUpdateStream.Subscribe(_ =>
-            {
-                if (_handleGameOverNextFrame)
-                {
-                    _handleGameOverNextFrame = false;
-                    handleGameOver();
-                }
-            });
 
 
             TableScrollStream.Subscribe(newWall =>
@@ -200,6 +176,47 @@ namespace Tetra4bica.Core
 
 
             resetGameState();
+        }
+
+        private void HandleFrame(float deltaTime) {
+            // For digtalzed cell spawning we brtter dvde deltaTme by time one partcle pass through one cell
+            float cellTime = 1 / _gameSettings.ProjectileSpeed;
+            while (deltaTime > 0)
+            {
+                var deltaPortion = Mathf.Min(deltaTime, cellTime);
+                deltaTime -= deltaPortion;
+
+                _time += deltaPortion;
+                if (_gameState.GamePhase is not GamePhase.Paused and not GamePhase.NotStarted)
+                {
+                    // Table scrolling
+                    scrollTableIfNeeded(deltaPortion);
+
+                    // Moving projectiles
+                    handleProjectiles(deltaPortion);
+                }
+                if (_handleGameOverNextFrame)
+                {
+                    _handleGameOverNextFrame = false;
+                    handleGameOver();
+                }
+            }
+
+            void scrollTableIfNeeded(float deltaTime)
+            {
+                _timeSincePreviousScroll = _timeSincePreviousScroll + deltaTime;
+                if (_timeSincePreviousScroll >= _gameSettings.ScrollTimeStep)
+                {
+                    int steps = (int)(_timeSincePreviousScroll / _gameSettings.ScrollTimeStep);
+                    _timeSincePreviousScroll = _timeSincePreviousScroll % _gameSettings.ScrollTimeStep;
+                    for (int i = 0; i < steps; i++)
+                    {
+                        this._cellGenerator.GenerateCells(_wallSpawnBuffer);
+                        _tableScrollStream.OnNext(_wallSpawnBuffer);
+                        _previousScrollTime = _previousScrollTime + _gameSettings.ScrollTimeStep;
+                    }
+                }
+            }
         }
 
         /// <summary> Sets new game phase. </summary>
@@ -349,32 +366,28 @@ namespace Tetra4bica.Core
             for (int i = 0; i < _gameState.Projectiles.Length; i++)
             {
                 Projectile projectile = _gameState.Projectiles[i];
-                if (projectile.Active)
+                if (!projectile.IsActive)
                 {
-                    bool flewAway = _gameSettings.ProjectilesCollideMapBounds
-                        ? isOutOfHorizontalMapBounds(projectile.Position.x)
-                        : isOutOfMapBounds(projectile.Position);
-                    if (!flewAway)
-                    {
-                        if (shouldBeFrozen(projectile, deltaTime, out Vector2Int landPosition))
-                        {
-                            _frozenProjectilesInnerStream.OnNext(landPosition);
-                            projectile.Active = false;
-                        }
-                    }
-                    else
-                    {
-                        projectile.Active = false;
-                    }
-                    if (projectile.Active)
-                    { //still
-                        projectile.Position = projectile.Position
-                            + projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
-                        _projectileCoordinatesStream.OnNext(projectile.Position);
-                    }
-                    // Writing updated projectile back to the array
-                    _gameState.Projectiles[i] = projectile;
+                    continue;
                 }
+                bool flewAway = _gameSettings.ProjectilesCollideMapBounds
+                    ? isOutOfHorizontalMapBounds(projectile.Position.x)
+                    : isOutOfMapBounds(projectile.Position);
+                if (flewAway) {
+                    projectile.IsActive = false;
+                } else if (shouldBeFrozen(projectile, deltaTime, out Vector2Int landPosition))
+                {
+                    _frozenProjectilesInnerStream.OnNext(landPosition);
+                    projectile.IsActive = false;
+                }
+                else
+                {
+                    var deltaPath = projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
+                    projectile.Position = projectile.Position + deltaPath;
+                    _projectileCoordinatesStream.OnNext(projectile.Position);
+                }
+                // Writing updated projectile back to the array
+                _gameState.Projectiles[i] = projectile;
             }
         }
 
@@ -391,7 +404,7 @@ namespace Tetra4bica.Core
             }
 
             // Checking each cell passed by projectile to decide does it collide with anything
-            // If The prijectile is already above occupied cell then backpress the projectile back to freeze it in 
+            // If The projectile is already above occupied cell then backpress the projectile back to freeze it in 
             // free space. During backpressing we should check does the projectile collides with the player tetromino
             // itself. In this case player tetromino goes down (game over)
             if (_gameState.GameTable[projectile.Position.toVector2Int()].HasValue)
@@ -399,12 +412,13 @@ namespace Tetra4bica.Core
                 // projectile cell is occupied already. Projectile should be backpressured
                 return backPressureProjectile(projectile, out landPosition);
             }
-            var farthestPosition = projectile.Position + projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
+
+            var posDeltaFloat = projectile.Direction.toVector2() * _gameSettings.ProjectileSpeed * deltaTime;
+            var farthestPosition = projectile.Position + posDeltaFloat;
             Vector2Int posDelta = (farthestPosition - projectile.Position.toVector2Int()).toVector2Int();
-            for (int passedCells = 0; (passedCells * projectile.Direction).sqrMagnitude <= posDelta.sqrMagnitude; passedCells++)
+            for (int i = 0; (i * projectile.Direction).sqrMagnitude <= posDelta.sqrMagnitude; i++)
             {
-                Vector2Int newPosition =
-                    (projectile.Position + (passedCells * projectile.Direction)).toVector2Int();
+                Vector2Int newPosition = (projectile.Position + (i * projectile.Direction)).toVector2Int();
                 if (shouldBeFrozen(projectile.Direction, newPosition, out landPosition))
                 {
                     return true;
@@ -426,18 +440,22 @@ namespace Tetra4bica.Core
                     return true;
                 }
                 // Check cell in front of the projectile
-                if (checkNeighbourCell(newPosition, direction))
+                if (checkNeighbourCell(newPosition, direction, false))
                 {
                     return true;
                 }
                 //Check borders
                 return stoppedByMapBounds(newPosition + direction);
 
-                bool checkNeighbourCell(Vector2Int roundedProjectilePosition, Vector2Int shift)
+                bool checkNeighbourCell(Vector2Int roundedProjectilePosition, Vector2Int shift, bool checkTime = true)
                 {
                     var coordinates = roundedProjectilePosition + shift;
-                    return !isOutOfMapBounds(coordinates)
-                        && _gameState.GameTable[coordinates.x, coordinates.y].HasValue;
+                    var nCell = _gameState.GameTable[coordinates].HasValue;
+                    var spawnTimeOpt = _gameState.GameTable.GetCellSpawnTime(coordinates.x, coordinates.y);
+                    // was it spawned before the projectile passed at least one cell?
+                    var isSpawnedEarly = !spawnTimeOpt.HasValue
+                        || (_time - spawnTimeOpt.Value) * _gameSettings.ProjectileSpeed >= 1;
+                    return !isOutOfMapBounds(coordinates) && nCell && (!checkTime || isSpawnedEarly);
                 }
 
                 bool stoppedByMapBounds(Vector2Int destinationCoordinates)
@@ -486,7 +504,7 @@ namespace Tetra4bica.Core
                 {
                     if (!_gameState.GameTable[plCell].HasValue)
                     {
-                        _gameState.GameTable[plCell] = _gameState.PlayerTetromino.Color;
+                        _gameState.GameTable.SetCell(plCell, _gameState.PlayerTetromino.Color, null);
                         _newCellStream.OnNext(new Cell(plCell, _gameState.PlayerTetromino.Color));
                     }
                 }
@@ -519,6 +537,7 @@ namespace Tetra4bica.Core
                 _frozenProjectilesStream.OnNext(newCellCoordinates);
                 return;
             }
+
             uint matchedCellsCount = addCellOfProperColorIfNoMatch(
                 newCellCoordinates,
                 _cellPatterns,
@@ -578,7 +597,7 @@ namespace Tetra4bica.Core
             // No pattern match, making decision what color should new cell have
             if (_neighbourCellsArray.Length == 0)
             {
-                _gameState.GameTable[cellPos] = defaultColor;
+                _gameState.GameTable.SetCell(cellPos, defaultColor, _time);
                 return 0;
             }
             uint maxScore = 0;
@@ -599,8 +618,8 @@ namespace Tetra4bica.Core
 
                 if (sameColorCounter > 1)
                 {
-                    // connect two samecoloured neighbour cells with the thitd andgo back
-                    _gameState.GameTable[cellPos] = color;
+                    // connect two samecoloured neighbour cells with the thitd and go back
+                    _gameState.GameTable.SetCell(cellPos, color, _time);
                     return 0;
                 }
                 else if (sameColorCounter == 1)
@@ -617,7 +636,7 @@ namespace Tetra4bica.Core
                 }
             }
 
-            _gameState.GameTable[cellPos] = colorWinner;
+            _gameState.GameTable.SetCell(cellPos, colorWinner, _time);
             return 0;
         }
 

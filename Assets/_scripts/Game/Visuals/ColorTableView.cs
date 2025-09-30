@@ -8,7 +8,6 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.Pool;
 using UnityEngine.Serialization;
-using VContainer;
 using static Sergei.Safonov.Utility.VectorExt;
 
 namespace Tetra4bica.Graphics
